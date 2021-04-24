@@ -1,3 +1,6 @@
+  <<<<<<< snyk-fix-29ee18a5679306bc9da727f1ec18fbdb
+FROM php:7.2-cli-alpine3.10
+  =======
   <<<<<<< snyk-fix-6e0a910c9d208e201599f91124a66e93
 FROM php:7-cli-alpine3.10
   =======
@@ -5,6 +8,7 @@ FROM php:7-cli-alpine3.10
 FROM php:7.2.30-cli-alpine3.10
   =======
 FROM php:7.3-cli-alpine3.10
+  >>>>>>> master
   >>>>>>> master
   >>>>>>> master
 
