@@ -1,4 +1,8 @@
+  <<<<<<< snyk-fix-f6dc760dc72a6d8b1fd27cf7a72209ce
 FROM php:7.3.27-cli-alpine3.12
+  =======
+FROM php:7.4.15-cli-alpine3.12
+  >>>>>>> master
 
 ARG DOCKER_USER_ID
 ARG DOCKER_GROUP_ID
