@@ -34,7 +34,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 final class Application extends BaseApplication
 {
-    const VERSION = '2.18.7-DEV';
+    const VERSION = '2.18.7';
     const VERSION_CODENAME = 'Remote Void';
 
     /**
@@ -103,7 +103,7 @@ final class Application extends BaseApplication
 
         $commit = '@git-commit@';
 
-        if ('@'.'git-commit@' !== $commit) {
+        if ('@'.'git-commit@' !== $commit) { // @phpstan-ignore-line as `$commit` is replaced during phar building
             $version .= ' ('.substr($commit, 0, 7).')';
         }
 

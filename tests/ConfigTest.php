@@ -193,7 +193,7 @@ final class ConfigTest extends TestCase
         $this->expectExceptionMessageMatches('/^Argument must be an array or a Traversable, got "\w+"\.$/');
 
         $config = new Config();
-        $config->registerCustomFixers('foo');
+        $config->registerCustomFixers('foo'); // @phpstan-ignore-line to avoid `expects iterable<PhpCsFixer\Fixer\FixerInterface>, string given`
     }
 
     /**
@@ -259,7 +259,7 @@ final class ConfigTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^Argument must be an array or a Traversable, got "integer"\.$/');
 
-        $config->setFinder(123);
+        $config->setFinder(123); // @phpstan-ignore-line to avoid `expects iterable<string>, int given`
     }
 
     /**
@@ -289,10 +289,10 @@ final class ConfigTest extends TestCase
 
     /**
      * @group legacy
-     * @expectedDeprecation PhpCsFixer\Config::create is deprecated since 2.17 and will be removed in 3.0.
      */
     public function testDeprecatedConstructor()
     {
+        $this->expectDeprecation('PhpCsFixer\\Config::create is deprecated since 2.17 and will be removed in 3.0.');
         Config::create();
     }
 }

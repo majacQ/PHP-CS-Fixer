@@ -558,10 +558,10 @@ EOF;
      * @group legacy
      * @requires PHP 7.1
      * @dataProvider provideFixClassConstCases
-     * @expectedDeprecation Passing "elements" at the root of the configuration for rule "visibility_required" is deprecated and will not be supported in 3.0, use "elements" => array(...) option instead.
      */
     public function testLegacyFixClassConst($expected, $input)
     {
+        $this->expectDeprecation('Passing "elements" at the root of the configuration for rule "visibility_required" is deprecated and will not be supported in 3.0, use "elements" => array(...) option instead.');
         $this->fixer->configure(['const']);
         $this->doTest($expected, $input);
     }
@@ -848,6 +848,19 @@ AB# <- this is the name
 
         yield [
             '<?php class Foo { private int | /* or empty */ null $foo; }',
+        ];
+
+        yield [
+            '<?php class Foo { private array|null $foo; }',
+        ];
+
+        yield [
+            '<?php class Foo { private null|array $foo; }',
+        ];
+
+        yield [
+            '<?php class Foo { public static null|array $foo; }',
+            '<?php class Foo { static null|array $foo; }',
         ];
     }
 }

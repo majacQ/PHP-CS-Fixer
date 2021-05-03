@@ -120,10 +120,10 @@ final class ConfigurationResolverTest extends TestCase
      * @dataProvider provideProgressTypeLegacyCases
      *
      * @group legacy
-     * @expectedDeprecation Passing `estimating`, `estimating-max` or `run-in` is deprecated and will not be supported in 3.0, use `none` or `dots` instead.
      */
     public function testResolveProgressWithPositiveConfigAndExplicitProgressLegacy($progressType)
     {
+        $this->expectDeprecation('Passing `estimating`, `estimating-max` or `run-in` is deprecated and will not be supported in 3.0, use `none` or `dots` instead.');
         $this->testResolveProgressWithPositiveConfigAndExplicitProgress($progressType);
     }
 
@@ -152,10 +152,10 @@ final class ConfigurationResolverTest extends TestCase
      * @dataProvider provideProgressTypeLegacyCases
      *
      * @group legacy
-     * @expectedDeprecation Passing `estimating`, `estimating-max` or `run-in` is deprecated and will not be supported in 3.0, use `none` or `dots` instead.
      */
     public function testResolveProgressWithNegativeConfigAndExplicitProgressLegacy($progressType)
     {
+        $this->expectDeprecation('Passing `estimating`, `estimating-max` or `run-in` is deprecated and will not be supported in 3.0, use `none` or `dots` instead.');
         $this->testResolveProgressWithNegativeConfigAndExplicitProgress($progressType);
     }
 
@@ -205,7 +205,7 @@ final class ConfigurationResolverTest extends TestCase
         $resolver = $this->createConfigurationResolver(['path' => [$dir.\DIRECTORY_SEPARATOR.'foo.php']]);
 
         static::assertSame($dir.\DIRECTORY_SEPARATOR.'.php_cs.dist', $resolver->getConfigFile());
-        static::assertInstanceOf(\Test1Config::class, $resolver->getConfig());
+        static::assertInstanceOf(\Test1Config::class, $resolver->getConfig()); // @phpstan-ignore-line to avoid `Class Test1Config not found.`
     }
 
     public function testResolveConfigFileSpecified()
@@ -215,7 +215,7 @@ final class ConfigurationResolverTest extends TestCase
         $resolver = $this->createConfigurationResolver(['config' => $file]);
 
         static::assertSame($file, $resolver->getConfigFile());
-        static::assertInstanceOf(\Test4Config::class, $resolver->getConfig());
+        static::assertInstanceOf(\Test4Config::class, $resolver->getConfig()); // @phpstan-ignore-line to avoid `Class Test4Config not found.`
     }
 
     /**
@@ -1201,10 +1201,10 @@ final class ConfigurationResolverTest extends TestCase
 
     /**
      * @group legacy
-     * @expectedDeprecation Expected "yes" or "no" for option "allow-risky", other values are deprecated and support will be removed in 3.0. Got "yes please", this implicitly set the option to "false".
      */
     public function testDeprecationOfPassingOtherThanNoOrYes()
     {
+        $this->expectDeprecation('Expected "yes" or "no" for option "allow-risky", other values are deprecated and support will be removed in 3.0. Got "yes please", this implicitly set the option to "false".');
         $resolver = $this->createConfigurationResolver(['allow-risky' => 'yes please']);
 
         static::assertFalse($resolver->getRiskyAllowed());
@@ -1242,10 +1242,10 @@ final class ConfigurationResolverTest extends TestCase
      * @dataProvider provideDeprecatedFixerConfiguredCases
      *
      * @group legacy
-     * @expectedDeprecation Rule "Vendor4/foo" is deprecated. Use "testA" and "testB" instead.
      */
     public function testDeprecatedFixerConfigured($ruleConfig)
     {
+        $this->expectDeprecation('Rule "Vendor4/foo" is deprecated. Use "testA" and "testB" instead.');
         $fixer = new DeprecatedFixer();
         $config = new Config();
         $config->registerCustomFixers([$fixer]);
