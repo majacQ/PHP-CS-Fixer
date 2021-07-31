@@ -1,4 +1,4 @@
-FROM php:7.3-cli-alpine3.13
+FROM php:7.4.22-cli-alpine3.13
 
 ARG DOCKER_USER_ID
 ARG DOCKER_GROUP_ID
