@@ -53,7 +53,7 @@ final class YodaStyleFixerTest extends AbstractFixerTestCase
 
     public function provideFixCases()
     {
-        $tests = [
+        yield from [
             [
                 '<?php $a = 1 + ($b + $c) === true ? 1 : 2;',
                 null,
@@ -638,10 +638,6 @@ $a#4
             ],
         ];
 
-        foreach ($tests as $index => $test) {
-            yield $index => $test;
-        }
-
         $template = '<?php $a = ($b + $c) %s 1 === true ? 1 : 2;';
         $operators = ['||', '&&'];
 
@@ -653,14 +649,26 @@ $a#4
             ];
         }
 
-        $templateExpected = '<?php $a %s 4 === $b ? 2 : 3;';
-        $templateInput = '<?php $a %s $b === 4 ? 2 : 3;';
-        $operators = ['**=', '*=', '|=', '+=', '-=', '^=', 'xor', 'or', 'and', '<<=', '>>=', '&=', '.=', '/=', '-=', '||', '&&'];
+        $assignmentOperators = ['=', '**=', '*=', '|=', '+=', '-=', '^=',  '<<=', '>>=', '&=', '.=', '/=', '%='];
+        if (\PHP_VERSION_ID >= 70400) {
+            $assignmentOperators[] = '??=';
+        }
 
-        foreach ($operators as $operator) {
+        $logicalOperators = ['xor', 'or', 'and',  '||', '&&'];
+        if (\PHP_VERSION_ID >= 70400) {
+            $logicalOperators[] = '??';
+        }
+
+        foreach (array_merge($assignmentOperators, $logicalOperators) as $operator) {
             yield [
-                sprintf($templateExpected, $operator),
-                sprintf($templateInput, $operator),
+                sprintf('<?php $a %s 4 === $b ? 2 : 3;', $operator),
+                sprintf('<?php $a %s $b === 4 ? 2 : 3;', $operator),
+            ];
+        }
+
+        foreach ($assignmentOperators as $operator) {
+            yield [
+                sprintf('<?php 1 === $x %s 2;', $operator),
             ];
         }
     }
@@ -799,6 +807,21 @@ function a() {
     }
 }
 ',
+                '<?php
+function a() {
+    for ($i = 1; $i <= 3; $i++) {
+        echo yield $i === 1 ? 1 : 2;
+    }
+}
+',
+            ],
+            [
+                '<?php function test() {return yield 1 !== $a [$b];};',
+                '<?php function test() {return yield $a [$b] !== 1;};',
+            ],
+            [
+                '<?php function test() {return yield 1 === $a;};',
+                '<?php function test() {return yield $a === 1;};',
             ],
         ];
     }

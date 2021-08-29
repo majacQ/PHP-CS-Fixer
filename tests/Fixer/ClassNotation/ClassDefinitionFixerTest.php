@@ -50,8 +50,6 @@ final class ClassDefinitionFixerTest extends AbstractFixerTestCase
      * @param array<string, bool> $config
      *
      * @dataProvider provideAnonymousClassesCases
-     *
-     * @requires PHP 7.0
      */
     public function testFixingAnonymousClasses(string $expected, string $input, array $config = []): void
     {
@@ -493,7 +491,7 @@ TestInterface3, /**/     TestInterface4   ,
 
     public function provideClassyImplementsInfoCases()
     {
-        $tests = [
+        yield from [
             '1' => [
                 '<?php
 class X11 implements    Z   , T,R
@@ -526,10 +524,6 @@ class X10 implements    Z   , T,R    //
                 ['start' => 5, 'numberOfImplements' => 3, 'multiLine' => false],
             ],
         ];
-
-        foreach ($tests as $index => $test) {
-            yield $index => $test;
-        }
 
         if (\PHP_VERSION_ID < 80000) {
             $multiLine = true;
@@ -605,17 +599,17 @@ namespace {
     }
 
     /**
-     * @dataProvider providePHP7Cases
+     * @dataProvider providePHP70Cases
      * @requires PHP 7.0
      */
-    public function testFixPHP7(string $expected, ?string $input = null): void
+    public function testFixPHP70(string $expected, ?string $input = null): void
     {
         $this->fixer->configure([]);
 
         $this->doTest($expected, $input);
     }
 
-    public function providePHP7Cases()
+    public function providePHP70Cases()
     {
         return [
             [
@@ -647,6 +641,34 @@ $a = new class implements
     \Fcc, \GFddZz
 {
 }?>',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider providePHP73Cases
+     * @requires PHP 7.3
+     */
+    public function testFixPHP73(string $expected, ?string $input = null): void
+    {
+        $this->fixer->configure([]);
+        $this->doTest($expected, $input);
+    }
+
+    public function providePHP73Cases()
+    {
+        return [
+            [
+                '<?php new class(1, 2, 3, ) {};',
+                '<?php new class(1, 2, 3,) {};',
+            ],
+            [
+                '<?php new class(1, 2, 3, ) {};',
+                '<?php new class(
+                    1,
+                    2,
+                    3,
+                ) {};',
             ],
         ];
     }

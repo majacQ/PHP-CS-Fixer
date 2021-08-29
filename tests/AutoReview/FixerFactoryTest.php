@@ -118,6 +118,7 @@ final class FixerFactoryTest extends TestCase
             [$fixers['general_phpdoc_tag_rename'], $fixers['phpdoc_add_missing_param_annotation']],
             [$fixers['global_namespace_import'], $fixers['no_unused_imports']],
             [$fixers['global_namespace_import'], $fixers['ordered_imports']],
+            [$fixers['header_comment'], $fixers['single_line_comment_style']],
             [$fixers['implode_call'], $fixers['method_argument_space']],
             [$fixers['indentation_type'], $fixers['phpdoc_indent']],
             [$fixers['is_null'], $fixers['yoda_style']],
@@ -139,7 +140,6 @@ final class FixerFactoryTest extends TestCase
             [$fixers['no_alternative_syntax'], $fixers['no_useless_else']],
             [$fixers['no_alternative_syntax'], $fixers['switch_continue_to_break']],
             [$fixers['no_blank_lines_after_phpdoc'], $fixers['header_comment']],
-            [$fixers['no_blank_lines_after_phpdoc'], $fixers['single_blank_line_before_namespace']],
             [$fixers['no_empty_comment'], $fixers['no_extra_blank_lines']],
             [$fixers['no_empty_comment'], $fixers['no_trailing_whitespace']],
             [$fixers['no_empty_comment'], $fixers['no_whitespace_in_blank_line']],
@@ -239,6 +239,7 @@ final class FixerFactoryTest extends TestCase
             [$fixers['phpdoc_to_comment'], $fixers['no_empty_comment']],
             [$fixers['phpdoc_to_comment'], $fixers['phpdoc_no_useless_inheritdoc']],
             [$fixers['phpdoc_to_param_type'], $fixers['no_superfluous_phpdoc_tags']],
+            [$fixers['phpdoc_to_property_type'], $fixers['no_superfluous_phpdoc_tags']],
             [$fixers['phpdoc_to_return_type'], $fixers['fully_qualified_strict_types']],
             [$fixers['phpdoc_to_return_type'], $fixers['no_superfluous_phpdoc_tags']],
             [$fixers['phpdoc_to_return_type'], $fixers['return_type_declaration']],
@@ -518,7 +519,7 @@ final class FixerFactoryTest extends TestCase
         $map = [];
 
         foreach ($cases as $beforeAfter) {
-            list($before, $after) = $beforeAfter;
+            [$before, $after] = $beforeAfter;
 
             $beforeClass = \get_class($before);
             $afterClass = \get_class($after);
@@ -557,6 +558,7 @@ final class FixerFactoryTest extends TestCase
                 $expectedMessage .= sprintf("\n     * Must run before %s.", implode(', ', $priorityMap['before']));
             }
 
+            // @phpstan-ignore-next-line to avoid `Comparison operation ">" between int<1, max> and 0 is always true.`
             if (\count($priorityMap['after']) > 0) {
                 sort($priorityMap['after']);
                 $expectedMessage .= sprintf("\n     * Must run after %s.", implode(', ', $priorityMap['after']));

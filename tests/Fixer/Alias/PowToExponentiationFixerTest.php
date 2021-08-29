@@ -36,7 +36,7 @@ final class PowToExponentiationFixerTest extends AbstractFixerTestCase
 
     public function provideFixCases()
     {
-        $tests = [
+        yield from [
             [
                 '<?php 1**2;',
                 '<?php pow(1,2);',
@@ -226,10 +226,6 @@ final class PowToExponentiationFixerTest extends AbstractFixerTestCase
             ],
         ];
 
-        foreach ($tests as $index => $test) {
-            yield $index => $test;
-        }
-
         if (\PHP_VERSION_ID < 80000) {
             yield [
                 '<?php echo $a{1}** $b{2+5};',
@@ -307,13 +303,10 @@ final class PowToExponentiationFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string $expected
-     * @param string $input
-     *
      * @requires PHP 8.0
      * @dataProvider provideFix80Cases
      */
-    public function testFix80($expected, $input): void
+    public function testFix80(string $expected, string $input): void
     {
         $this->doTest($expected, $input);
     }

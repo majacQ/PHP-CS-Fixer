@@ -493,7 +493,7 @@ class Foo
                             $whitespace = $nextWhitespace.$this->whitespacesConfig->getLineEnding().$indent;
 
                             if (!$nextNonWhitespaceNestToken->equals('}')) {
-                                $determineIsIndentableBlockContent = static function (int $contentIndex) use ($tokens) {
+                                $determineIsIndentableBlockContent = static function (int $contentIndex) use ($tokens): bool {
                                     if (!$tokens[$contentIndex]->isComment()) {
                                         return true;
                                     }
@@ -659,9 +659,9 @@ class Foo
                 continue;
             }
 
-            // do not add for short 'if' followed by alternative loop,
-            // for example: if ($a) while ($b): ? > X < ?php endwhile; ? >
-            if ($tokenAfterParenthesis->isGivenKind([T_FOR, T_FOREACH, T_SWITCH, T_WHILE])) {
+            // do not add for 'short if' followed by alternative loop, for example: if ($a) while ($b): ? > X < ?php endwhile; ? >
+            // or 'short if' after an alternative loop, for example:  foreach ($arr as $index => $item) if ($item):
+            if ($tokenAfterParenthesis->isGivenKind([T_FOR, T_FOREACH, T_SWITCH, T_WHILE, T_IF])) {
                 $tokenAfterParenthesisBlockEnd = $tokens->findBlockEnd( // go to ')'
                     Tokens::BLOCK_TYPE_PARENTHESIS_BRACE,
                     $tokens->getNextMeaningfulToken($nextAfterParenthesisEndIndex)

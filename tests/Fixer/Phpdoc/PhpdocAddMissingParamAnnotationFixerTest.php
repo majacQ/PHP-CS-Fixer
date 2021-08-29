@@ -59,7 +59,7 @@ final class PhpdocAddMissingParamAnnotationFixerTest extends AbstractFixerTestCa
     /**
      * @return iterable<string, array>
      */
-    public function provideConfigureRejectsInvalidConfigurationValueCases()
+    public function provideConfigureRejectsInvalidConfigurationValueCases(): iterable
     {
         yield 'null' => [
             null,
@@ -299,23 +299,6 @@ final class PhpdocAddMissingParamAnnotationFixerTest extends AbstractFixerTestCa
         return $string;
     }',
             ],
-        ];
-    }
-
-    /**
-     * @dataProvider provideFix70Cases
-     * @requires PHP 7.0
-     */
-    public function testFix70(string $expected, ?string $input = null, array $config = []): void
-    {
-        $this->fixer->configure($config ?: ['only_untyped' => false]);
-
-        $this->doTest($expected, $input);
-    }
-
-    public function provideFix70Cases()
-    {
-        return [
             [
                 '<?php
     /**

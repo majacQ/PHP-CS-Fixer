@@ -27,7 +27,6 @@ final class ArrayPushFixerTest extends AbstractFixerTestCase
 {
     /**
      * @dataProvider provideFixCases
-     * @requires PHP 7.0
      */
     public function testFix(string $expected, ?string $input = null): void
     {
@@ -152,12 +151,12 @@ final class ArrayPushFixerTest extends AbstractFixerTestCase
         ];
 
         yield [
-            '<?php $a->$c[] = $b;', // invalid on PHP5.6
+            '<?php $a->$c[] = $b;',
             '<?php array_push($a->$c, $b);',
         ];
 
         yield [
-            '<?php $a->$c[1]->$d{$a--}->$a[7][] = $b;', // invalid on PHP5.6
+            '<?php $a->$c[1]->$d{$a--}->$a[7][] = $b;',
             '<?php array_push($a->$c[1]->$d{$a--}->$a[7], $b);',
         ];
 

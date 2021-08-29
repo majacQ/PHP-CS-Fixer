@@ -93,39 +93,12 @@ class Bar { function Foo(ARRAY $a, CALLABLE $b, Self $c) {} }
 function Foo(INTEGER $a) {}
                 ',
             ],
-        ];
-    }
-
-    /**
-     * @requires PHP <7.0
-     *
-     * @dataProvider provideFixPre70Cases
-     */
-    public function testFixPre70(string $expected): void
-    {
-        $this->doTest($expected);
-    }
-
-    public function provideFixPre70Cases()
-    {
-        return [
-            ['<?php function Foo(BOOL $A, FLOAT $B, INT $C, STRING $D, ITERABLE $E, VOID $F, OBJECT $o) {}'],
-            ['<?php class Foo { public function Foo(\INT $a) {}}'],
-        ];
-    }
-
-    /**
-     * @dataProvider provideFix70Cases
-     * @requires PHP 7.0
-     */
-    public function testFix70(string $expected, ?string $input = null): void
-    {
-        $this->doTest($expected, $input);
-    }
-
-    public function provideFix70Cases()
-    {
-        return [
+            [
+                '<?php function Foo(
+                    String\A $x,
+                    B\String\C $y
+                ) {}',
+            ],
             [
                 '<?php final class Foo1 { final public function Foo(bool $A, float $B, int $C, string $D): int {} }',
                 '<?php final class Foo1 { final public function Foo(BOOL $A, FLOAT $B, INT $C, STRING $D): INT {} }',
@@ -214,6 +187,21 @@ function Foo(INTEGER $a) {}
         yield [
             '<?php class T { public function Foo(mixed $A): mixed {}}',
             '<?php class T { public function Foo(Mixed $A): MIXED {}}',
+        ];
+
+        yield [
+            '<?php function foo(int|bool $x) {}',
+            '<?php function foo(INT|BOOL $x) {}',
+        ];
+
+        yield [
+            '<?php function foo(int | bool $x) {}',
+            '<?php function foo(INT | BOOL $x) {}',
+        ];
+
+        yield [
+            '<?php function foo(): int|bool {}',
+            '<?php function foo(): INT|BOOL {}',
         ];
     }
 }

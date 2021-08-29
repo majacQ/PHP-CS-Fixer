@@ -109,26 +109,6 @@ final class UtilsTest extends TestCase
     }
 
     /**
-     * @dataProvider provideCmpIntCases
-     */
-    public function testCmpInt(int $expected, int $left, int $right): void
-    {
-        static::assertSame($expected, Utils::cmpInt($left, $right));
-    }
-
-    public function provideCmpIntCases()
-    {
-        return [
-            [0,    1,   1],
-            [0,   -1,  -1],
-            [-1,  10,  20],
-            [-1, -20, -10],
-            [1,   20,  10],
-            [1,  -10, -20],
-        ];
-    }
-
-    /**
      * @param array|string $input token prototype
      *
      * @dataProvider provideCalculateTrailingWhitespaceIndentCases
@@ -269,17 +249,23 @@ final class UtilsTest extends TestCase
 
         $this->expectDeprecation('The message');
 
-        Utils::triggerDeprecation('The message', \DomainException::class);
+        Utils::triggerDeprecation(new \DomainException('The message'));
     }
 
     public function testTriggerDeprecationWhenFutureModeIsOn(): void
     {
         putenv('PHP_CS_FIXER_FUTURE_MODE=1');
 
-        $this->expectException(\DomainException::class);
-        $this->expectExceptionMessage('The message');
+        $exception = new \DomainException('The message');
+        $futureModeException = null;
 
-        Utils::triggerDeprecation('The message', \DomainException::class);
+        try {
+            Utils::triggerDeprecation($exception);
+        } catch (\Exception $futureModeException) {
+        }
+
+        static::assertInstanceOf(\RuntimeException::class, $futureModeException);
+        static::assertSame($exception, $futureModeException->getPrevious());
     }
 
     private function createFixerDouble(string $name, int $priority)

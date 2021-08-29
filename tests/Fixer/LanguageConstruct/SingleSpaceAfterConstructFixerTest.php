@@ -467,24 +467,6 @@ Foo {}',
             [
                 '<?php $foo = stdClass::class;',
             ],
-        ];
-    }
-
-    /**
-     * @requires PHP 7.0
-     *
-     * @dataProvider provideFixWithClassPhp70Cases
-     */
-    public function testFixWithClassPhp70(string $expected, ?string $input = null, array $config = []): void
-    {
-        $this->fixer->configure($config);
-
-        $this->doTest($expected, $input);
-    }
-
-    public function provideFixWithClassPhp70Cases()
-    {
-        return [
             [
                 '<?php $foo = new class {};',
                 '<?php $foo = new class  {};',
@@ -914,28 +896,6 @@ Bar6, Baz, Qux {}',
     Qux
 {}',
             ],
-        ];
-    }
-
-    /**
-     * @requires PHP 7.0
-     *
-     * @dataProvider provideFixWithExtendsPhp70Cases
-     */
-    public function testFixWithExtendsPhp70(string $expected, ?string $input = null): void
-    {
-        $this->fixer->configure([
-            'constructs' => [
-                'extends',
-            ],
-        ]);
-
-        $this->doTest($expected, $input);
-    }
-
-    public function provideFixWithExtendsPhp70Cases()
-    {
-        return [
             [
                 '<?php $foo = new class extends \InvalidArgumentException {};',
                 '<?php $foo = new class extends  \InvalidArgumentException {};',
@@ -1469,28 +1429,6 @@ foo; foo: echo "Bar";',
                     Baz
                 {}',
             ],
-        ];
-    }
-
-    /**
-     * @requires PHP 7.0
-     *
-     * @dataProvider provideFixWithImplementsPhp70Cases
-     */
-    public function testFixWithImplementsPhp70(string $expected, ?string $input = null): void
-    {
-        $this->fixer->configure([
-            'constructs' => [
-                'implements',
-            ],
-        ]);
-
-        $this->doTest($expected, $input);
-    }
-
-    public function provideFixWithImplementsPhp70Cases()
-    {
-        return [
             [
                 '<?php $foo = new class implements \Countable {};',
                 '<?php $foo = new class implements  \Countable {};',
@@ -3003,8 +2941,79 @@ echo 1;
 new Dummy(/* a */);
 new Dummy(/** b */);
 foo(/* c */);
+foo($a /* d */, $b);
 $arr = [/* empty */];
 ',
+        ];
+    }
+
+    /**
+     * @dataProvider provideWithNamespaceCases
+     */
+    public function testWithNamespace(string $expected, ?string $input = null): void
+    {
+        $this->fixer->configure([
+            'constructs' => [
+                'namespace',
+            ],
+        ]);
+
+        $this->doTest($expected, $input);
+    }
+
+    public function provideWithNamespaceCases(): iterable
+    {
+        yield 'simple' => [
+            '<?php
+namespace Foo;
+namespace Bar;',
+            '<?php
+namespace    Foo;
+namespace    Bar;',
+        ];
+
+        yield 'simple with newlines' => [
+            '<?php
+namespace Foo;
+namespace Bar;',
+            '<?php
+namespace
+Foo;
+namespace
+Bar;',
+        ];
+
+        yield 'braces' => [
+            '<?php
+namespace Foo {}
+namespace Bar {}',
+            '<?php
+namespace    Foo {}
+namespace    Bar {}',
+        ];
+
+        yield 'braces with newlines' => [
+            '<?php
+namespace Foo {}
+namespace Bar {}',
+            '<?php
+namespace
+Foo {}
+namespace
+Bar {}',
+        ];
+
+        yield 'with // comment' => [
+            '<?php
+namespace // comment
+Foo;',
+        ];
+
+        yield 'with /* comment */' => [
+            '<?php
+namespace /* comment */ Foo;',
+            '<?php
+namespace/* comment */ Foo;',
         ];
     }
 

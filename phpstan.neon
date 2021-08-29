@@ -1,5 +1,5 @@
 includes:
-    - dev-tools/vendor/jangregor/phpstan-prophecy/src/extension.neon
+    - dev-tools/vendor/jangregor/phpstan-prophecy/extension.neon
     - dev-tools/vendor/phpstan/phpstan/conf/bleedingEdge.neon
     - dev-tools/vendor/phpstan/phpstan-phpunit/extension.neon
 
@@ -8,11 +8,6 @@ parameters:
     paths:
         - src
         - tests
-    excludes_analyse:
+    excludePaths:
         - tests/Fixtures
-    ignoreErrors:
-        - '/^Constant T_NAME_(RELATIVE|FULLY_QUALIFIED|QUALIFIED) not found\.$/'
-        -
-            message: '/^Constant T_ATTRIBUTE not found\.$/'
-            path: src/Tokenizer/Transformer/AttributeTransformer.php
     tipsOfTheDay: false
