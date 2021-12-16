@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -17,7 +19,6 @@ use PhpCsFixer\Tokenizer\TransformerInterface;
 use PhpCsFixer\Tokenizer\Transformers;
 
 /**
- * @author SpacePossum
  * @author Dave van der Brugge <dmvdbrugge@gmail.com>
  *
  * @internal
@@ -31,7 +32,7 @@ final class TransformerTest extends TestCase
     /**
      * @dataProvider provideTransformerPriorityCases
      */
-    public function testTransformerPriority(TransformerInterface $first, TransformerInterface $second)
+    public function testTransformerPriority(TransformerInterface $first, TransformerInterface $second): void
     {
         static::assertLessThan(
             $first->getPriority(),
@@ -43,7 +44,7 @@ final class TransformerTest extends TestCase
     /**
      * @dataProvider provideTransformerCases
      */
-    public function testTransformerPriorityIsListed(TransformerInterface $transformer)
+    public function testTransformerPriorityIsListed(TransformerInterface $transformer): void
     {
         $priority = $transformer->getPriority();
 
@@ -56,7 +57,7 @@ final class TransformerTest extends TestCase
         $name = $transformer->getName();
 
         foreach ($this->provideTransformerPriorityCases() as $pair) {
-            list($first, $second) = $pair;
+            [$first, $second] = $pair;
 
             if ($name === $first->getName() || $name === $second->getName()) {
                 $this->addToAssertionCount(1);
@@ -68,11 +69,11 @@ final class TransformerTest extends TestCase
         static::fail(sprintf('Transformer "%s" has priority %d but is not in priority test list.', $name, $priority));
     }
 
-    public function provideTransformerPriorityCases()
+    public function provideTransformerPriorityCases(): array
     {
         $transformers = [];
 
-        foreach ($this->provideTransformerCases() as list($transformer)) {
+        foreach ($this->provideTransformerCases() as [$transformer]) {
             $transformers[$transformer->getName()] = $transformer;
         }
 
@@ -80,13 +81,18 @@ final class TransformerTest extends TestCase
             [$transformers['attribute'], $transformers['curly_brace']],
             [$transformers['attribute'], $transformers['square_brace']],
             [$transformers['curly_brace'], $transformers['brace_class_instantiation']],
+            [$transformers['curly_brace'], $transformers['import']],
             [$transformers['curly_brace'], $transformers['use']],
             [$transformers['name_qualified'], $transformers['namespace_operator']],
+            [$transformers['return_ref'], $transformers['import']],
             [$transformers['return_ref'], $transformers['type_colon']],
             [$transformers['square_brace'], $transformers['brace_class_instantiation']],
             [$transformers['type_colon'], $transformers['named_argument']],
             [$transformers['type_colon'], $transformers['nullable_type']],
+            [$transformers['array_typehint'], $transformers['type_alternation']],
             [$transformers['type_colon'], $transformers['type_alternation']],
+            [$transformers['array_typehint'], $transformers['type_intersection']],
+            [$transformers['type_colon'], $transformers['type_intersection']],
             [$transformers['use'], $transformers['type_colon']],
         ];
     }
@@ -94,12 +100,12 @@ final class TransformerTest extends TestCase
     /**
      * @return TransformerInterface[]
      */
-    public function provideTransformerCases()
+    public function provideTransformerCases(): array
     {
         static $transformersArray = null;
 
         if (null === $transformersArray) {
-            $transformers = Transformers::create();
+            $transformers = Transformers::createSingleton();
             $reflection = new \ReflectionObject($transformers);
             $builtInTransformers = $reflection->getMethod('findBuiltInTransformers');
             $builtInTransformers->setAccessible(true);

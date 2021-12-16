@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -14,9 +16,7 @@ namespace PhpCsFixer\Tests\Smoke;
 
 use Keradus\CliExecutor\CommandExecutor;
 use PhpCsFixer\Console\Application;
-use PhpCsFixer\Utils;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Finder\Finder;
 
 /**
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
@@ -29,6 +29,9 @@ use Symfony\Component\Finder\Finder;
  */
 final class InstallViaComposerTest extends AbstractSmokeTest
 {
+    /**
+     * @var string[]
+     */
     private $stepsToVerifyInstallation = [
         // Confirm we can install.
         'composer install -q',
@@ -40,9 +43,9 @@ final class InstallViaComposerTest extends AbstractSmokeTest
         'vendor/bin/php-cs-fixer fix --help',
     ];
 
-    public static function doSetUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
-        parent::doSetUpBeforeClass();
+        parent::setUpBeforeClass();
 
         if ('\\' === \DIRECTORY_SEPARATOR) {
             static::markTestIncomplete('This test is broken on Windows');
@@ -67,7 +70,7 @@ final class InstallViaComposerTest extends AbstractSmokeTest
         }
     }
 
-    public function testInstallationViaPathIsPossible()
+    public function testInstallationViaPathIsPossible(): void
     {
         $fs = new Filesystem();
 
@@ -89,7 +92,7 @@ final class InstallViaComposerTest extends AbstractSmokeTest
 
         file_put_contents(
             $tmpPath.'/composer.json',
-            json_encode($initialComposerFileState, Utils::calculateBitmask(['JSON_PRETTY_PRINT']))
+            json_encode($initialComposerFileState, JSON_PRETTY_PRINT)
         );
 
         static::assertCommandsWork($this->stepsToVerifyInstallation, $tmpPath);
@@ -98,7 +101,7 @@ final class InstallViaComposerTest extends AbstractSmokeTest
     }
 
     // test that respects `export-ignore` from `.gitattributes` file
-    public function testInstallationViaArtifactIsPossible()
+    public function testInstallationViaArtifactIsPossible(): void
     {
         // Composer Artifact Repository requires `zip` extension
         if (!\extension_loaded('zip')) {
@@ -131,13 +134,13 @@ final class InstallViaComposerTest extends AbstractSmokeTest
 
         file_put_contents(
             $tmpPath.'/composer.json',
-            json_encode($initialComposerFileState, Utils::calculateBitmask(['JSON_PRETTY_PRINT']))
+            json_encode($initialComposerFileState, JSON_PRETTY_PRINT)
         );
 
         $cwd = __DIR__.'/../..';
 
         $stepsToInitializeArtifact = [
-            // Clone current version of project to new location, as we gonna modify it.
+            // Clone current version of project to new location, as we are going to modify it.
             // Warning! Only already committed changes will be cloned!
             "git clone --depth=1 . {$tmpArtifactPath}",
         ];
@@ -159,29 +162,11 @@ final class InstallViaComposerTest extends AbstractSmokeTest
         static::assertCommandsWork($stepsToPrepareArtifact, $tmpArtifactPath);
         static::assertCommandsWork($this->stepsToVerifyInstallation, $tmpPath);
 
-        // ensure that files from "tests" directory in release are autoloaded
-        $finder = Finder::create()
-            ->files()
-            ->in($tmpPath.'/vendor/friendsofphp/php-cs-fixer')
-            ->path('/tests/')
-            ->sortByName()
-        ;
-
-        $filesInRelease = [];
-        foreach ($finder as $file) {
-            $filesInRelease[] = $file->getRelativePathname();
-        }
-
-        $composer = json_decode(file_get_contents(__DIR__.'/../../composer.json'), true);
-        $autoloadFiles = $composer['autoload']['classmap'];
-
-        static::assertSame($filesInRelease, $autoloadFiles, 'Expected all files in "./tests" directory to be in "classmap" "composer.json", update the "classmap" or ".gitattributes".');
-
         $fs->remove($tmpPath);
         $fs->remove($tmpArtifactPath);
     }
 
-    private static function assertCommandsWork(array $commands, $cwd)
+    private static function assertCommandsWork(array $commands, string $cwd): void
     {
         foreach ($commands as $command) {
             static::assertSame(0, CommandExecutor::create($command, $cwd)->getResult()->getCode());

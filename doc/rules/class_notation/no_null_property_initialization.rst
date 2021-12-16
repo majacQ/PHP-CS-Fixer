@@ -15,11 +15,23 @@ Example #1
 
    --- Original
    +++ New
-   @@ -1,4 +1,4 @@
     <?php
     class Foo {
    -    public $foo = null;
    +    public $foo;
+    }
+
+Example #2
+~~~~~~~~~~
+
+.. code-block:: diff
+
+   --- Original
+   +++ New
+    <?php
+    class Foo {
+   -    public static $foo = null;
+   +    public static $foo;
     }
 
 Rule sets

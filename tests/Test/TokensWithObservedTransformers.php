@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -23,24 +25,29 @@ class TokensWithObservedTransformers extends Tokens
      * @var null|string
      */
     public $currentTransformer;
+
+    /**
+     * @var array<string,array<int|string>>
+     */
     public $observedModificationsPerTransformer = [];
 
-    public function offsetSet($index, $newval)
+    public function offsetSet($index, $newval): void
     {
         if (null !== $this->currentTransformer) {
             $this->observedModificationsPerTransformer[$this->currentTransformer][] = $this->extractTokenKind($newval);
         }
+
         parent::offsetSet($index, $newval);
     }
 
     /**
      * @internal
      */
-    protected function applyTransformers()
+    protected function applyTransformers(): void
     {
         $this->observedModificationsPerTransformer = [];
 
-        $transformers = Transformers::create();
+        $transformers = Transformers::createSingleton();
         foreach (AccessibleObject::create($transformers)->items as $transformer) {
             $this->currentTransformer = $transformer->getName();
             $this->observedModificationsPerTransformer[$this->currentTransformer] = [];
@@ -63,6 +70,6 @@ class TokensWithObservedTransformers extends Tokens
         return $token instanceof Token
             ? ($token->isArray() ? $token->getId() : $token->getContent())
             : (\is_array($token) ? $token[0] : $token)
-            ;
+        ;
     }
 }

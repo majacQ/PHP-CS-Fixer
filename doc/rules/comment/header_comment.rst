@@ -21,8 +21,6 @@ This option is required.
 
 Comment syntax type.
 
-.. note:: The previous name of this option was ``commentType`` but it is now deprecated and will be removed on next major version.
-
 Allowed values: ``'comment'``, ``'PHPDoc'``
 
 Default value: ``'comment'``
@@ -57,7 +55,6 @@ With configuration: ``['header' => 'Made with love.']``.
 
    --- Original
    +++ New
-   @@ -1,6 +1,10 @@
     <?php
     declare(strict_types=1);
 
@@ -78,7 +75,6 @@ With configuration: ``['header' => 'Made with love.', 'comment_type' => 'PHPDoc'
 
    --- Original
    +++ New
-   @@ -1,6 +1,10 @@
     <?php
    +/**
    + * Made with love.
@@ -99,7 +95,6 @@ With configuration: ``['header' => 'Made with love.', 'comment_type' => 'comment
 
    --- Original
    +++ New
-   @@ -1,6 +1,10 @@
     <?php
     declare(strict_types=1);
 
@@ -107,6 +102,26 @@ With configuration: ``['header' => 'Made with love.', 'comment_type' => 'comment
    + * Made with love.
    + */
    +
+    namespace A\B;
+
+    echo 1;
+
+Example #4
+~~~~~~~~~~
+
+With configuration: ``['header' => '']``.
+
+.. code-block:: diff
+
+   --- Original
+   +++ New
+    <?php
+    declare(strict_types=1);
+
+   -/*
+   - * Comment is not wanted here.
+   - */
+   -
     namespace A\B;
 
     echo 1;

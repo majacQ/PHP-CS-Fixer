@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -24,17 +26,16 @@ use PhpCsFixer\Tokenizer\Token;
 final class NamespacedStringTokenGeneratorTest extends TestCase
 {
     /**
-     * @param string $input
-     *
      * @dataProvider provideGeneratorCases
      */
-    public function testGenerator($input, array $expected)
+    public function testGenerator(array $expected, string $input): void
     {
         $generator = new NamespacedStringTokenGenerator();
+
         static::assertSame(
             $expected,
             array_map(
-                static function (Token $token) {
+                static function (Token $token): string {
                     return $token->getContent();
                 },
                 $generator->generate($input)
@@ -42,12 +43,12 @@ final class NamespacedStringTokenGeneratorTest extends TestCase
         );
     }
 
-    public function provideGeneratorCases()
+    public function provideGeneratorCases(): \Generator
     {
-        return [
-            ['test', ['test']],
-            ['Some\\Namespace', ['Some', '\\', 'Namespace']],
-            ['Some\\Bigger\\Namespace', ['Some', '\\', 'Bigger', '\\', 'Namespace']],
-        ];
+        yield [['test'], 'test'];
+
+        yield [['Some', '\\', 'Namespace'], 'Some\\Namespace'];
+
+        yield [['Some', '\\', 'Bigger', '\\', 'Namespace'], 'Some\\Bigger\\Namespace'];
     }
 }

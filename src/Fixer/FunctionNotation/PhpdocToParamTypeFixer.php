@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -14,12 +16,9 @@ namespace PhpCsFixer\Fixer\FunctionNotation;
 
 use PhpCsFixer\AbstractPhpdocToTypeDeclarationFixer;
 use PhpCsFixer\DocBlock\Annotation;
-use PhpCsFixer\DocBlock\DocBlock;
+use PhpCsFixer\FixerDefinition\CodeSample;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
-use PhpCsFixer\FixerDefinition\VersionSpecification;
-use PhpCsFixer\FixerDefinition\VersionSpecificCodeSample;
-use PhpCsFixer\Preg;
-use PhpCsFixer\Tokenizer\CT;
+use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
 
@@ -28,16 +27,10 @@ use PhpCsFixer\Tokenizer\Tokens;
  */
 final class PhpdocToParamTypeFixer extends AbstractPhpdocToTypeDeclarationFixer
 {
-    /** @internal */
-    const CLASS_REGEX = '/^\\\\?[a-zA-Z_\\x7f-\\xff](?:\\\\?[a-zA-Z0-9_\\x7f-\\xff]+)*(?<array>\[\])*$/';
-
-    /** @internal */
-    const MINIMUM_PHP_VERSION = 70000;
-
     /**
      * @var array{int, string}[]
      */
-    private $excludeFuncNames = [
+    private const EXCLUDE_FUNC_NAMES = [
         [T_STRING, '__clone'],
         [T_STRING, '__destruct'],
     ];
@@ -45,7 +38,7 @@ final class PhpdocToParamTypeFixer extends AbstractPhpdocToTypeDeclarationFixer
     /**
      * @var array<string, true>
      */
-    private $skippedTypes = [
+    private const SKIPPED_TYPES = [
         'mixed' => true,
         'resource' => true,
         'static' => true,
@@ -55,28 +48,31 @@ final class PhpdocToParamTypeFixer extends AbstractPhpdocToTypeDeclarationFixer
     /**
      * {@inheritdoc}
      */
-    public function getDefinition()
+    public function getDefinition(): FixerDefinitionInterface
     {
         return new FixerDefinition(
             'EXPERIMENTAL: Takes `@param` annotations of non-mixed types and adjusts accordingly the function signature. Requires PHP >= 7.0.',
             [
-                new VersionSpecificCodeSample(
+                new CodeSample(
                     '<?php
 
-/** @param string $bar */
-function my_foo($bar)
+/**
+ * @param string $foo
+ * @param string|null $bar
+ */
+function f($foo, $bar)
 {}
-',
-                    new VersionSpecification(70000)
+'
                 ),
-                new VersionSpecificCodeSample(
+                new CodeSample(
                     '<?php
 
-/** @param string|null $bar */
-function my_foo($bar)
-{}
+/** @param Foo $foo */
+function foo($foo) {}
+/** @param string $foo */
+function bar($foo) {}
 ',
-                    new VersionSpecification(70100)
+                    ['scalar_types' => false]
                 ),
             ],
             null,
@@ -87,9 +83,9 @@ function my_foo($bar)
     /**
      * {@inheritdoc}
      */
-    public function isCandidate(Tokens $tokens)
+    public function isCandidate(Tokens $tokens): bool
     {
-        return \PHP_VERSION_ID >= self::MINIMUM_PHP_VERSION && $tokens->isTokenKindFound(T_FUNCTION);
+        return $tokens->isTokenKindFound(T_FUNCTION);
     }
 
     /**
@@ -98,23 +94,20 @@ function my_foo($bar)
      * Must run before NoSuperfluousPhpdocTagsFixer, PhpdocAlignFixer.
      * Must run after AlignMultilineCommentFixer, CommentToPhpdocFixer, PhpdocIndentFixer, PhpdocScalarFixer, PhpdocToCommentFixer, PhpdocTypesFixer.
      */
-    public function getPriority()
+    public function getPriority(): int
     {
         return 8;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function isRisky()
+    protected function isSkippedType(string $type): bool
     {
-        return true;
+        return isset(self::SKIPPED_TYPES[$type]);
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function applyFix(\SplFileInfo $file, Tokens $tokens)
+    protected function applyFix(\SplFileInfo $file, Tokens $tokens): void
     {
         for ($index = $tokens->count() - 1; 0 < $index; --$index) {
             if (!$tokens[$index]->isGivenKind(T_FUNCTION)) {
@@ -122,123 +115,39 @@ function my_foo($bar)
             }
 
             $funcName = $tokens->getNextMeaningfulToken($index);
-            if ($tokens[$funcName]->equalsAny($this->excludeFuncNames, false)) {
+            if ($tokens[$funcName]->equalsAny(self::EXCLUDE_FUNC_NAMES, false)) {
                 continue;
             }
 
-            $paramTypeAnnotations = $this->findParamAnnotations($tokens, $index);
+            $docCommentIndex = $this->findFunctionDocComment($tokens, $index);
 
-            foreach ($paramTypeAnnotations as $paramTypeAnnotation) {
-                if (\PHP_VERSION_ID < self::MINIMUM_PHP_VERSION) {
+            if (null === $docCommentIndex) {
+                continue;
+            }
+
+            foreach ($this->getAnnotationsFromDocComment('param', $tokens, $docCommentIndex) as $paramTypeAnnotation) {
+                $typeInfo = $this->getCommonTypeFromAnnotation($paramTypeAnnotation, false);
+
+                if (null === $typeInfo) {
                     continue;
                 }
 
-                $types = array_values($paramTypeAnnotation->getTypes());
-                $paramType = current($types);
+                [$paramType, $isNullable] = $typeInfo;
 
-                if (isset($this->skippedTypes[$paramType])) {
-                    continue;
-                }
-
-                $hasIterable = false;
-                $hasNull = false;
-                $hasArray = false;
-                $hasString = false;
-                $hasInt = false;
-                $hasFloat = false;
-                $hasBool = false;
-                $hasCallable = false;
-                $hasObject = false;
-                $minimumTokenPhpVersion = self::MINIMUM_PHP_VERSION;
-
-                foreach ($types as $key => $type) {
-                    if (1 !== Preg::match(self::CLASS_REGEX, $type, $matches)) {
-                        continue;
-                    }
-
-                    if (isset($matches['array'])) {
-                        $hasArray = true;
-                        unset($types[$key]);
-                    }
-
-                    if ('iterable' === $type) {
-                        $hasIterable = true;
-                        unset($types[$key]);
-                        $minimumTokenPhpVersion = 70100;
-                    }
-
-                    if ('null' === $type) {
-                        $hasNull = true;
-                        unset($types[$key]);
-                        $minimumTokenPhpVersion = 70100;
-                    }
-
-                    if ('string' === $type) {
-                        $hasString = true;
-                        unset($types[$key]);
-                    }
-
-                    if ('int' === $type) {
-                        $hasInt = true;
-                        unset($types[$key]);
-                    }
-
-                    if ('float' === $type) {
-                        $hasFloat = true;
-                        unset($types[$key]);
-                    }
-
-                    if ('bool' === $type) {
-                        $hasBool = true;
-                        unset($types[$key]);
-                    }
-
-                    if ('callable' === $type) {
-                        $hasCallable = true;
-                        unset($types[$key]);
-                    }
-
-                    if ('array' === $type) {
-                        $hasArray = true;
-                        unset($types[$key]);
-                    }
-
-                    if ('object' === $type) {
-                        $hasObject = true;
-                        unset($types[$key]);
-                        $minimumTokenPhpVersion = 70200;
-                    }
-                }
-
-                if (\PHP_VERSION_ID < $minimumTokenPhpVersion) {
-                    continue;
-                }
-
-                $typesCount = \count($types);
-
-                if (1 < $typesCount) {
-                    continue;
-                }
-
-                if (0 === $typesCount) {
-                    $paramType = '';
-                } elseif (1 === $typesCount) {
-                    $paramType = array_shift($types);
-                }
-
-                $startIndex = $tokens->getNextTokenOfKind($index, ['(']) + 1;
-                $variableIndex = $this->findCorrectVariable($tokens, $startIndex - 1, $paramTypeAnnotation);
+                $startIndex = $tokens->getNextTokenOfKind($index, ['(']);
+                $variableIndex = $this->findCorrectVariable($tokens, $startIndex, $paramTypeAnnotation);
 
                 if (null === $variableIndex) {
                     continue;
                 }
 
                 $byRefIndex = $tokens->getPrevMeaningfulToken($variableIndex);
+
                 if ($tokens[$byRefIndex]->equals('&')) {
                     $variableIndex = $byRefIndex;
                 }
 
-                if (!('(' === $tokens[$variableIndex - 1]->getContent()) && $this->hasParamTypeHint($tokens, $variableIndex - 2)) {
+                if ($this->hasParamTypeHint($tokens, $variableIndex)) {
                     continue;
                 }
 
@@ -246,163 +155,42 @@ function my_foo($bar)
                     continue;
                 }
 
-                $this->fixFunctionDefinition(
-                    $paramType,
-                    $tokens,
-                    $variableIndex,
-                    $hasNull,
-                    $hasArray,
-                    $hasIterable,
-                    $hasString,
-                    $hasInt,
-                    $hasFloat,
-                    $hasBool,
-                    $hasCallable,
-                    $hasObject
-                );
+                $tokens->insertAt($variableIndex, array_merge(
+                    $this->createTypeDeclarationTokens($paramType, $isNullable),
+                    [new Token([T_WHITESPACE, ' '])]
+                ));
             }
         }
     }
 
-    /**
-     * Find all the param annotations in the function's PHPDoc comment.
-     *
-     * @param int $index The index of the function token
-     *
-     * @return Annotation[]
-     */
-    private function findParamAnnotations(Tokens $tokens, $index)
+    private function findCorrectVariable(Tokens $tokens, int $startIndex, Annotation $paramTypeAnnotation): ?int
     {
-        do {
-            $index = $tokens->getPrevNonWhitespace($index);
-        } while ($tokens[$index]->isGivenKind([
-            T_COMMENT,
-            T_ABSTRACT,
-            T_FINAL,
-            T_PRIVATE,
-            T_PROTECTED,
-            T_PUBLIC,
-            T_STATIC,
-        ]));
+        $endIndex = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, $startIndex);
 
-        if (!$tokens[$index]->isGivenKind(T_DOC_COMMENT)) {
-            return [];
+        for ($index = $startIndex + 1; $index < $endIndex; ++$index) {
+            if (!$tokens[$index]->isGivenKind(T_VARIABLE)) {
+                continue;
+            }
+
+            $variableName = $tokens[$index]->getContent();
+
+            if ($paramTypeAnnotation->getVariableName() === $variableName) {
+                return $index;
+            }
         }
 
-        $doc = new DocBlock($tokens[$index]->getContent());
-
-        return $doc->getAnnotationsOfType('param');
-    }
-
-    /**
-     * @param int        $index
-     * @param Annotation $paramTypeAnnotation
-     *
-     * @return null|int
-     */
-    private function findCorrectVariable(Tokens $tokens, $index, $paramTypeAnnotation)
-    {
-        $nextFunction = $tokens->getNextTokenOfKind($index, [[T_FUNCTION]]);
-        $variableIndex = $tokens->getNextTokenOfKind($index, [[T_VARIABLE]]);
-
-        if (\is_int($nextFunction) && $variableIndex > $nextFunction) {
-            return null;
-        }
-
-        if (!isset($tokens[$variableIndex])) {
-            return null;
-        }
-
-        $variableToken = $tokens[$variableIndex]->getContent();
-        Preg::match('/@param\s*[^\s!<]+\s*([^\s]+)/', $paramTypeAnnotation->getContent(), $paramVariable);
-        if (isset($paramVariable[1]) && $paramVariable[1] === $variableToken) {
-            return $variableIndex;
-        }
-
-        return $this->findCorrectVariable($tokens, $index + 1, $paramTypeAnnotation);
+        return null;
     }
 
     /**
      * Determine whether the function already has a param type hint.
      *
      * @param int $index The index of the end of the function definition line, EG at { or ;
-     *
-     * @return bool
      */
-    private function hasParamTypeHint(Tokens $tokens, $index)
+    private function hasParamTypeHint(Tokens $tokens, int $index): bool
     {
-        return $tokens[$index]->isGivenKind([T_STRING, T_NS_SEPARATOR, CT::T_ARRAY_TYPEHINT, T_CALLABLE, CT::T_NULLABLE_TYPE]);
-    }
+        $prevIndex = $tokens->getPrevMeaningfulToken($index);
 
-    /**
-     * @param string $paramType
-     * @param int    $index       The index of the end of the function definition line, EG at { or ;
-     * @param bool   $hasNull
-     * @param bool   $hasArray
-     * @param bool   $hasIterable
-     * @param bool   $hasString
-     * @param bool   $hasInt
-     * @param bool   $hasFloat
-     * @param bool   $hasBool
-     * @param bool   $hasCallable
-     * @param bool   $hasObject
-     */
-    private function fixFunctionDefinition(
-        $paramType,
-        Tokens $tokens,
-        $index,
-        $hasNull,
-        $hasArray,
-        $hasIterable,
-        $hasString,
-        $hasInt,
-        $hasFloat,
-        $hasBool,
-        $hasCallable,
-        $hasObject
-    ) {
-        $newTokens = [];
-
-        if (true === $hasIterable && true === $hasArray) {
-            $newTokens[] = new Token([CT::T_ARRAY_TYPEHINT, 'array']);
-        } elseif (true === $hasIterable) {
-            $newTokens[] = new Token([T_STRING, 'iterable']);
-        } elseif (true === $hasArray) {
-            $newTokens[] = new Token([CT::T_ARRAY_TYPEHINT, 'array']);
-        } elseif (true === $hasString) {
-            $newTokens[] = new Token([T_STRING, 'string']);
-        } elseif (true === $hasInt) {
-            $newTokens[] = new Token([T_STRING, 'int']);
-        } elseif (true === $hasFloat) {
-            $newTokens[] = new Token([T_STRING, 'float']);
-        } elseif (true === $hasBool) {
-            $newTokens[] = new Token([T_STRING, 'bool']);
-        } elseif (true === $hasCallable) {
-            $newTokens[] = new Token([T_CALLABLE, 'callable']);
-        } elseif (true === $hasObject) {
-            $newTokens[] = new Token([T_STRING, 'object']);
-        }
-
-        if ('' !== $paramType && [] !== $newTokens) {
-            return;
-        }
-
-        foreach (explode('\\', $paramType) as $nsIndex => $value) {
-            if (0 === $nsIndex && '' === $value) {
-                continue;
-            }
-
-            if (0 < $nsIndex) {
-                $newTokens[] = new Token([T_NS_SEPARATOR, '\\']);
-            }
-            $newTokens[] = new Token([T_STRING, $value]);
-        }
-
-        if (true === $hasNull) {
-            array_unshift($newTokens, new Token([CT::T_NULLABLE_TYPE, '?']));
-        }
-
-        $newTokens[] = new Token([T_WHITESPACE, ' ']);
-        $tokens->insertAt($index, $newTokens);
+        return !$tokens[$prevIndex]->equalsAny([',', '(']);
     }
 }

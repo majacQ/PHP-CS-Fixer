@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -20,17 +22,15 @@ use PhpCsFixer\Tokenizer\CT;
  *
  * @internal
  *
+ * @covers \PhpCsFixer\Tokenizer\AbstractTypeTransformer
  * @covers \PhpCsFixer\Tokenizer\Transformer\TypeAlternationTransformer
  */
 final class TypeAlternationTransformerTest extends AbstractTransformerTestCase
 {
     /**
-     * @param string $source
-     *
      * @dataProvider provideProcessCases
-     * @requires PHP 7.1
      */
-    public function testProcess($source, array $expectedTokens = [])
+    public function testProcess(string $source, array $expectedTokens = []): void
     {
         $this->doTest(
             $source,
@@ -41,7 +41,7 @@ final class TypeAlternationTransformerTest extends AbstractTransformerTestCase
         );
     }
 
-    public function provideProcessCases()
+    public function provideProcessCases(): array
     {
         return [
             'no namespace' => [
@@ -77,24 +77,28 @@ final class TypeAlternationTransformerTest extends AbstractTransformerTestCase
                     echo "aaa" | "bbb";
                     echo F_OK | F_ERR;
                     echo foo(F_OK | F_ERR);
+                    foo($A||$b);
+                    foo($A|$b);
                     // try {} catch (ExceptionType1 | ExceptionType2) {}
+                    $a = function(){};
+                    $x = ($y|$z);
+                    function foo(){}
+                    $a = $b|$c;
                 ',
             ],
         ];
     }
 
     /**
-     * @param string $source
-     *
      * @dataProvider provideProcess80Cases
      * @requires PHP 8.0
      */
-    public function testProcess80($source, array $expectedTokens)
+    public function testProcess80(string $source, array $expectedTokens): void
     {
         $this->doTest($source, $expectedTokens);
     }
 
-    public function provideProcess80Cases()
+    public function provideProcess80Cases(): \Generator
     {
         yield 'arrow function' => [
             '<?php $a = fn(int|null $item): int|null => $item * 2;',
@@ -192,7 +196,7 @@ class Number
 
     private \Foo|Bar $number5;
 
-    private ?Bar $number6; // ? cannot be part of an union in PHP8
+    private ?Bar $number6; // ? cannot be part of a union in PHP8
 }
 ',
             [
@@ -224,6 +228,151 @@ class Number
                 27 => CT::T_TYPE_ALTERNATION,
                 31 => CT::T_TYPE_ALTERNATION,
                 35 => CT::T_TYPE_ALTERNATION,
+            ],
+        ];
+
+        yield 'array as first element of types' => [
+            '<?php function foo(array|bool|null $foo) {}',
+            [
+                6 => CT::T_TYPE_ALTERNATION,
+                8 => CT::T_TYPE_ALTERNATION,
+            ],
+        ];
+
+        yield 'array as middle element of types' => [
+            '<?php function foo(null|array|bool $foo) {}',
+            [
+                6 => CT::T_TYPE_ALTERNATION,
+                8 => CT::T_TYPE_ALTERNATION,
+            ],
+        ];
+
+        yield 'array as last element of types' => [
+            '<?php function foo(null|bool|array $foo) {}',
+            [
+                6 => CT::T_TYPE_ALTERNATION,
+                8 => CT::T_TYPE_ALTERNATION,
+            ],
+        ];
+
+        yield 'multiple function parameters' => [
+            '<?php function foo(A|B $x, C|D $y, E|F $z) {};',
+            [
+                6 => CT::T_TYPE_ALTERNATION,
+                13 => CT::T_TYPE_ALTERNATION,
+                20 => CT::T_TYPE_ALTERNATION,
+            ],
+        ];
+
+        yield 'function calls and function definitions' => [
+            '<?php
+                f1(CONST_A|CONST_B);
+                function f2(A|B $x, C|D $y, E|F $z) {};
+                f3(CONST_A|CONST_B);
+                function f4(A|B $x, C|D $y, E|F $z) {};
+                f5(CONST_A|CONST_B);
+                $x = ($y|$z);
+            ',
+            [
+                15 => CT::T_TYPE_ALTERNATION,
+                22 => CT::T_TYPE_ALTERNATION,
+                29 => CT::T_TYPE_ALTERNATION,
+                52 => CT::T_TYPE_ALTERNATION,
+                59 => CT::T_TYPE_ALTERNATION,
+                66 => CT::T_TYPE_ALTERNATION,
+            ],
+        ];
+
+        yield 'callable type' => [
+            '<?php
+                function f1(array|callable $x) {};
+                function f2(callable|array $x) {};
+                function f3(string|callable $x) {};
+                function f4(callable|string $x) {};
+            ',
+            [
+                7 => CT::T_TYPE_ALTERNATION,
+                22 => CT::T_TYPE_ALTERNATION,
+                37 => CT::T_TYPE_ALTERNATION,
+                52 => CT::T_TYPE_ALTERNATION,
+            ],
+        ];
+
+        yield 'promoted properties' => [
+            '<?php class Foo {
+                public function __construct(
+                    public int|string $a,
+                    protected int|string $b,
+                    private int|string $c
+                ) {}
+            }',
+            [
+                17 => CT::T_TYPE_ALTERNATION,
+                26 => CT::T_TYPE_ALTERNATION,
+                35 => CT::T_TYPE_ALTERNATION,
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider provideFix81Cases
+     * @requires PHP 8.1
+     */
+    public function testFix81(array $expectedTokens, string $source): void
+    {
+        $this->doTest(
+            $source,
+            $expectedTokens,
+            [
+                CT::T_TYPE_ALTERNATION,
+            ]
+        );
+    }
+
+    public function provideFix81Cases(): \Generator
+    {
+        yield 'readonly' => [
+            [
+                12 => CT::T_TYPE_ALTERNATION,
+            ],
+            '<?php
+class Foo
+{
+    public readonly string|int $c;
+}',
+        ];
+
+        yield 'promoted properties' => [
+            [
+                19 => CT::T_TYPE_ALTERNATION,
+                30 => CT::T_TYPE_ALTERNATION,
+                41 => CT::T_TYPE_ALTERNATION,
+            ],
+            '<?php class Foo {
+                public function __construct(
+                    public readonly int|string $a,
+                    protected readonly int|string $b,
+                    private readonly int|string $c
+                ) {}
+            }',
+        ];
+    }
+
+    /**
+     * @dataProvider provideProcess81Cases
+     * @requires PHP 8.1
+     */
+    public function testProcess81(string $source, array $expectedTokens): void
+    {
+        $this->doTest($source, $expectedTokens);
+    }
+
+    public function provideProcess81Cases(): \Generator
+    {
+        yield 'arrow function with intersection' => [
+            '<?php $a = fn(int|null $item): int&null => $item * 2;',
+            [
+                8 => CT::T_TYPE_ALTERNATION,
             ],
         ];
     }

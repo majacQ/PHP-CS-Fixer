@@ -12,7 +12,7 @@ Configuration
 
 List of strings defining order of elements.
 
-Allowed values: a subset of ``['use_trait', 'public', 'protected', 'private', 'constant', 'constant_public', 'constant_protected', 'constant_private', 'property', 'property_static', 'property_public', 'property_protected', 'property_private', 'property_public_static', 'property_protected_static', 'property_private_static', 'method', 'method_abstract', 'method_static', 'method_public', 'method_protected', 'method_private', 'method_public_abstract', 'method_protected_abstract', 'method_public_abstract_static', 'method_protected_abstract_static', 'method_public_static', 'method_protected_static', 'method_private_static', 'construct', 'destruct', 'magic', 'phpunit']``
+Allowed values: a subset of ``['use_trait', 'public', 'protected', 'private', 'constant', 'constant_public', 'constant_protected', 'constant_private', 'property', 'property_static', 'property_public', 'property_protected', 'property_private', 'property_public_readonly', 'property_protected_readonly', 'property_private_readonly', 'property_public_static', 'property_protected_static', 'property_private_static', 'method', 'method_abstract', 'method_static', 'method_public', 'method_protected', 'method_private', 'method_public_abstract', 'method_protected_abstract', 'method_public_abstract_static', 'method_protected_abstract_static', 'method_public_static', 'method_protected_static', 'method_private_static', 'construct', 'destruct', 'magic', 'phpunit']``
 
 Default value: ``['use_trait', 'constant_public', 'constant_protected', 'constant_private', 'property_public', 'property_protected', 'property_private', 'construct', 'destruct', 'magic', 'phpunit', 'method_public', 'method_protected', 'method_private']``
 
@@ -20,8 +20,6 @@ Default value: ``['use_trait', 'constant_public', 'constant_protected', 'constan
 ~~~~~~~~~~~~~~~~~~
 
 How multiple occurrences of same type statements should be sorted
-
-.. note:: The previous name of this option was ``sortAlgorithm`` but it is now deprecated and will be removed on next major version.
 
 Allowed values: ``'alpha'``, ``'none'``
 
@@ -39,7 +37,10 @@ Example #1
 
    --- Original
    +++ New
-   @@ -5,26 +5,26 @@
+    <?php
+    final class Example
+    {
+        use BarTrait;
         use BazTrait;
         const C1 = 1;
         const C2 = 2;
@@ -85,7 +86,6 @@ With configuration: ``['order' => ['method_private', 'method_public']]``.
 
    --- Original
    +++ New
-   @@ -1,6 +1,6 @@
     <?php
     class Example
     {
@@ -103,7 +103,6 @@ With configuration: ``['order' => ['method_public'], 'sort_algorithm' => 'alpha'
 
    --- Original
    +++ New
-   @@ -1,8 +1,8 @@
     <?php
     class Example
     {

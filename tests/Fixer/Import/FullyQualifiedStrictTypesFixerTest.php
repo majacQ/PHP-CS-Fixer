@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -24,43 +26,23 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 final class FullyQualifiedStrictTypesFixerTest extends AbstractFixerTestCase
 {
     /**
-     * @requires PHP 7.0
-     *
      * @dataProvider provideCodeWithReturnTypesCases
-     *
-     * @param string      $expected
-     * @param null|string $input
-     */
-    public function testCodeWithReturnTypes($expected, $input = null)
-    {
-        $this->doTest($expected, $input);
-    }
-
-    /**
-     * @requires PHP 7.1
-     *
      * @dataProvider provideCodeWithReturnTypesCasesWithNullableCases
-     *
-     * @param string      $expected
-     * @param null|string $input
      */
-    public function testCodeWithReturnTypesWithNullable($expected, $input = null)
+    public function testCodeWithReturnTypes(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
     /**
      * @dataProvider provideCodeWithoutReturnTypesCases
-     *
-     * @param string      $expected
-     * @param null|string $input
      */
-    public function testCodeWithoutReturnTypes($expected, $input = null)
+    public function testCodeWithoutReturnTypes(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideCodeWithReturnTypesCases()
+    public function provideCodeWithReturnTypesCases(): array
     {
         return [
             'Import common strict types' => [
@@ -245,7 +227,7 @@ class SomeClass
         ];
     }
 
-    public function provideCodeWithoutReturnTypesCases()
+    public function provideCodeWithoutReturnTypesCases(): array
     {
         return [
             'Import common strict types' => [
@@ -447,7 +429,7 @@ function withReference(\Exception &$e) {}',
         ];
     }
 
-    public function provideCodeWithReturnTypesCasesWithNullableCases()
+    public function provideCodeWithReturnTypesCasesWithNullableCases(): array
     {
         return [
             'Test namespace fixes with nullable types' => [
@@ -497,6 +479,57 @@ class Two
     }
 }',
             ],
+        ];
+    }
+
+    /**
+     * @requires PHP 8.0
+     *
+     * @dataProvider provideFix80Cases
+     */
+    public function testFix80(string $expected, string $input): void
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public static function provideFix80Cases(): iterable
+    {
+        yield [
+            '<?php function foo(A|B|C $x) {}',
+            '<?php function foo(\A|\B|\C $x) {}',
+        ];
+
+        yield [
+            '<?php function foo(): A|B|C {}',
+            '<?php function foo(): \A|\B|\C {}',
+        ];
+
+        yield 'aaa' => [
+            '<?php function foo(): A | B | C {}',
+            '<?php function foo(): \A | \B | \C {}',
+        ];
+
+        yield [
+            '<?php function f(): Foo|Bar|A\B\C {}',
+            '<?php function f(): Foo|\Bar|\A\B\C {}',
+        ];
+    }
+
+    /**
+     * @requires PHP 8.1
+     *
+     * @dataProvider provideFix81Cases
+     */
+    public function testFix81(string $expected, string $input): void
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public static function provideFix81Cases(): iterable
+    {
+        yield [
+            '<?php function f(): Foo&Bar & A\B\C {}',
+            '<?php function f(): Foo&\Bar & \A\B\C {}',
         ];
     }
 }

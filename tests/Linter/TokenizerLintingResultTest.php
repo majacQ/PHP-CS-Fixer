@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -16,8 +18,6 @@ use PhpCsFixer\Linter\TokenizerLintingResult;
 use PhpCsFixer\Tests\TestCase;
 
 /**
- * @author SpacePossum
- *
  * @internal
  *
  * @covers \PhpCsFixer\Linter\TokenizerLintingResult
@@ -27,13 +27,13 @@ final class TokenizerLintingResultTest extends TestCase
     /**
      * @doesNotPerformAssertions
      */
-    public function testTokenizerLintingResultOK()
+    public function testTokenizerLintingResultOK(): void
     {
         $result = new TokenizerLintingResult();
         $result->check();
     }
 
-    public function testTokenizerLintingResultFailParseError()
+    public function testTokenizerLintingResultFailParseError(): void
     {
         $error = new \ParseError('syntax error, unexpected end of file, expecting \'{\'', 567);
         $line = __LINE__ - 1;
@@ -58,7 +58,7 @@ final class TokenizerLintingResultTest extends TestCase
     /**
      * @requires PHP 7.3
      */
-    public function testTokenizerLintingResultFailCompileError()
+    public function testTokenizerLintingResultFailCompileError(): void
     {
         $error = new \CompileError('Multiple access type modifiers are not allowed');
         $line = __LINE__ - 1;

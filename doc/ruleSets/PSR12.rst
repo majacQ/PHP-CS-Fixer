@@ -12,6 +12,9 @@ Rules
 - `braces <./../rules/basic/braces.rst>`_
   config:
   ``['allow_single_line_anonymous_class_with_empty_body' => true]``
+- `class_definition <./../rules/class_notation/class_definition.rst>`_
+  config:
+  ``['space_before_parenthesis' => true]``
 - `compact_nullable_typehint <./../rules/whitespace/compact_nullable_typehint.rst>`_
 - `declare_equal_normalize <./../rules/language_construct/declare_equal_normalize.rst>`_
 - `lowercase_cast <./../rules/cast_notation/lowercase_cast.rst>`_
@@ -32,5 +35,3 @@ Rules
 - `single_trait_insert_per_statement <./../rules/class_notation/single_trait_insert_per_statement.rst>`_
 - `ternary_operator_spaces <./../rules/operator/ternary_operator_spaces.rst>`_
 - `visibility_required <./../rules/class_notation/visibility_required.rst>`_
-  config:
-  ``['elements' => ['const', 'method', 'property']]``

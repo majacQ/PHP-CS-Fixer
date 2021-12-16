@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -17,7 +19,6 @@ use PhpCsFixer\WhitespacesFixerConfig;
 
 /**
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
- * @author SpacePossum
  *
  * @internal
  *
@@ -26,17 +27,14 @@ use PhpCsFixer\WhitespacesFixerConfig;
 final class SingleImportPerStatementFixerTest extends AbstractFixerTestCase
 {
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixCases
      */
-    public function testFix($expected, $input = null)
+    public function testFix(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFixCases()
+    public function provideFixCases(): array
     {
         return [
             [
@@ -207,24 +205,6 @@ C  ; ',
 use X ?><?php new X(); // run before white space around semicolon',
                 '<?php use Z , X ?><?php new X(); // run before white space around semicolon',
             ],
-        ];
-    }
-
-    /**
-     * @param string      $expected
-     * @param null|string $input
-     *
-     * @dataProvider provideFix70Cases
-     * @requires PHP 7.0
-     */
-    public function test70($expected, $input = null)
-    {
-        $this->doTest($expected, $input);
-    }
-
-    public function provideFix70Cases()
-    {
-        return [
             [
                 '<?php use FooA#
 ;#
@@ -262,13 +242,37 @@ use Foo\
     Bar, Baz
 };',
             ],
+            [
+                '<?php
+use function md5;
+use function str_repeat;
+use const true;
+use const false;
+use A;
+use B;
+',
+                '<?php
+use function md5, str_repeat;
+use const true, false;
+use A,B;
+',
+            ],
+            [
+                '<?php
+use D\E;
+use D\F;
+use G\H;
+use G\I/*1*//*2*/;
+',
+                '<?php
+use D\{E,F,};
+use G\{H,I/*1*/,/*2*/};
+',
+            ],
         ];
     }
 
-    /**
-     * @requires PHP 7.0
-     */
-    public function testMessyComments()
+    public function testMessyComments(): void
     {
         if (\PHP_VERSION_ID >= 80000) {
             static::markTestSkipped('PHP < 8.0 is required.');
@@ -289,19 +293,16 @@ use D\{
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideMessyWhitespacesCases
      */
-    public function testMessyWhitespaces($expected, $input = null)
+    public function testMessyWhitespaces(string $expected, ?string $input = null): void
     {
         $this->fixer->setWhitespacesConfig(new WhitespacesFixerConfig("\t", "\r\n"));
 
         $this->doTest($expected, $input);
     }
 
-    public function provideMessyWhitespacesCases()
+    public function provideMessyWhitespacesCases(): array
     {
         return [
             [
@@ -312,44 +313,10 @@ use D\{
     }
 
     /**
-     * @param string $expected
-     * @param string $input
-     *
-     * @dataProvider provideFix72Cases
-     * @requires PHP 7.2
-     */
-    public function testFix72($expected, $input)
-    {
-        $this->doTest($expected, $input);
-    }
-
-    public function provideFix72Cases()
-    {
-        return [
-            [
-                '<?php
-use D\E;
-use D\F;
-use G\H;
-use G\I/*1*//*2*/;
-',
-                '<?php
-use D\{E,F,};
-use G\{H,I/*1*/,/*2*/};
-',
-            ],
-        ];
-    }
-
-    /**
      * @requires PHP <8.0
      */
-    public function testFixPrePHP80()
+    public function testFixPrePHP80(): void
     {
-        if (\PHP_VERSION_ID < 70000) {
-            static::markTestSkipped('PHP > 7.0 && < 8.0 is required.');
-        }
-
         $this->doTest(
             '<?php
 use some\a\ClassA;

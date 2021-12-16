@@ -28,7 +28,6 @@ Example #1
 
    --- Original
    +++ New
-   @@ -1 +1 @@
    -<?php $x = array(1 , "2");
    +<?php $x = array(1, "2");
 
@@ -41,7 +40,6 @@ With configuration: ``['after_heredoc' => true]``.
 
    --- Original
    +++ New
-   @@ -1,6 +1,5 @@
     <?php
         $x = [<<<EOD
     foo
@@ -67,6 +65,11 @@ The rule is part of the following rule sets:
 
 @PHP80Migration
   Using the `@PHP80Migration <./../../ruleSets/PHP80Migration.rst>`_ rule set will enable the ``no_whitespace_before_comma_in_array`` rule with the config below:
+
+  ``['after_heredoc' => true]``
+
+@PHP81Migration
+  Using the `@PHP81Migration <./../../ruleSets/PHP81Migration.rst>`_ rule set will enable the ``no_whitespace_before_comma_in_array`` rule with the config below:
 
   ``['after_heredoc' => true]``
 

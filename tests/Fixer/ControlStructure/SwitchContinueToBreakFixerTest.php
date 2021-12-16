@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -22,19 +24,16 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 final class SwitchContinueToBreakFixerTest extends AbstractFixerTestCase
 {
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideTestFixCases
      */
-    public function testFix($expected, $input = null)
+    public function testFix(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideTestFixCases()
+    public function provideTestFixCases(): \Generator
     {
-        $tests = [
+        yield from [
             'alternative syntax |' => [
                 '<?php
                     switch($foo):
@@ -401,117 +400,35 @@ case $b:
             ],
         ];
 
-        foreach ($tests as $index => $test) {
-            yield $index => $test;
-        }
-
-        if (\PHP_VERSION_ID < 70000) {
-            yield 'simple case' => [
-                '<?php
-switch($a) {
-    case 1:
-        echo 1;
-
-        break;
-    case 2:
-        echo 2;
-
-        if ($z) break 1;
-
-        break 1;
-    case 3:
-        echo 2;
-
-        continue 2;
-    case 4:
-        continue 12;
-}
-',
-                '<?php
-switch($a) {
-    case 1:
-        echo 1;
-
-        continue;
-    case 2:
-        echo 2;
-
-        if ($z) continue 1;
-
-        continue 1;
-    case 3:
-        echo 2;
-
-        continue 2;
-    case 4:
-        continue 12;
-}
-',
-            ];
-
-            yield 'nested 1' => [
-                '<?php
-    while($a) {
-        switch($b) {
-            case 1:
-                break 1;
-            case 2:
-                break 1;
-            case 3:
-                continue 2;
-            case 4:
-                continue 3;
-        }
-    }
-
-    switch($b) {
-        case 1:
-            switch($c) {
-                case 1:
-                    break 2;
-        }
-    }
-',
-                '<?php
-    while($a) {
-        switch($b) {
-            case 1:
-                continue 1;
-            case 2:
-                continue 1;
-            case 3:
-                continue 2;
-            case 4:
-                continue 3;
-        }
-    }
-
-    switch($b) {
-        case 1:
-            switch($c) {
-                case 1:
-                    continue 2;
-        }
-    }
-',
-            ];
-        }
+        yield [
+            '<?php
+            switch($a) {
+                case "a":
+                    echo __FILE__;
+                    break;
+            }
+            ',
+            '<?php
+            switch($a) {
+                case "a":
+                    echo __FILE__;
+                    continue;
+            }
+            ',
+        ];
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @requires PHP 7.4
      *
      * @dataProvider provideFix74Cases
      */
-    public function testFix74($expected, $input = null)
+    public function testFix74(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFix74Cases()
+    public function provideFix74Cases(): array
     {
         return [
             'numeric literal separator' => [

@@ -49,14 +49,15 @@ Example #1
 
    --- Original
    +++ New
-   @@ -1,8 +1,6 @@
     <?php
     class Foo {
         /**
    -     * @param Bar $bar
    -     * @param mixed $baz
+         *
+   -     * @return Baz
          */
-        public function doFoo(Bar $bar, $baz) {}
+        public function doFoo(Bar $bar, $baz): Baz {}
     }
 
 Example #2
@@ -68,7 +69,6 @@ With configuration: ``['allow_mixed' => true]``.
 
    --- Original
    +++ New
-   @@ -1,8 +1,7 @@
     <?php
     class Foo {
         /**
@@ -81,34 +81,12 @@ With configuration: ``['allow_mixed' => true]``.
 Example #3
 ~~~~~~~~~~
 
-*Default* configuration.
-
-.. code-block:: diff
-
-   --- Original
-   +++ New
-   @@ -1,10 +1,7 @@
-    <?php
-    class Foo {
-        /**
-   -     * @param Bar $bar
-   -     * @param mixed $baz
-         *
-   -     * @return Baz
-         */
-        public function doFoo(Bar $bar, $baz): Baz {}
-    }
-
-Example #4
-~~~~~~~~~~
-
 With configuration: ``['remove_inheritdoc' => true]``.
 
 .. code-block:: diff
 
    --- Original
    +++ New
-   @@ -1,7 +1,7 @@
     <?php
     class Foo {
         /**
@@ -118,7 +96,7 @@ With configuration: ``['remove_inheritdoc' => true]``.
         public function doFoo(Bar $bar, $baz) {}
     }
 
-Example #5
+Example #4
 ~~~~~~~~~~
 
 With configuration: ``['allow_unused_params' => true]``.
@@ -127,7 +105,6 @@ With configuration: ``['allow_unused_params' => true]``.
 
    --- Original
    +++ New
-   @@ -1,9 +1,7 @@
     <?php
     class Foo {
         /**

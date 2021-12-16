@@ -29,7 +29,6 @@ Example #1
 
    --- Original
    +++ New
-   @@ -1,5 +1,5 @@
     <?php
         $a = <<<EOD
    -abc
@@ -48,7 +47,6 @@ Example #2
 
    --- Original
    +++ New
-   @@ -1,5 +1,5 @@
     <?php
         $a = <<<'EOD'
    -abc
@@ -67,7 +65,6 @@ With configuration: ``['indentation' => 'same_as_start']``.
 
    --- Original
    +++ New
-   @@ -1,5 +1,5 @@
     <?php
         $a = <<<'EOD'
    -abc
@@ -90,3 +87,6 @@ The rule is part of the following rule sets:
 
 @PHP80Migration
   Using the `@PHP80Migration <./../../ruleSets/PHP80Migration.rst>`_ rule set will enable the ``heredoc_indentation`` rule with the default config.
+
+@PHP81Migration
+  Using the `@PHP81Migration <./../../ruleSets/PHP81Migration.rst>`_ rule set will enable the ``heredoc_indentation`` rule with the default config.

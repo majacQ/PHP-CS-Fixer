@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -12,28 +14,24 @@
 
 namespace PhpCsFixer\RuleSet\Sets;
 
-use PhpCsFixer\RuleSet\AbstractRuleSetDescription;
+use PhpCsFixer\Fixer\PhpUnit\PhpUnitTargetVersion;
+use PhpCsFixer\RuleSet\AbstractMigrationSetDescription;
 
 /**
  * @internal
  */
-final class PHPUnit56MigrationRiskySet extends AbstractRuleSetDescription
+final class PHPUnit56MigrationRiskySet extends AbstractMigrationSetDescription
 {
-    public function getRules()
+    public function getRules(): array
     {
         return [
             '@PHPUnit55Migration:risky' => true,
             'php_unit_dedicate_assert' => [
-                'target' => '5.6',
+                'target' => PhpUnitTargetVersion::VERSION_5_6,
             ],
             'php_unit_expectation' => [
-                'target' => '5.6',
+                'target' => PhpUnitTargetVersion::VERSION_5_6,
             ],
         ];
-    }
-
-    public function getDescription()
-    {
-        return 'Rules to improve tests code for PHPUnit 5.6 compatibility.';
     }
 }

@@ -13,8 +13,6 @@ Configuration
 whether the statements should be sorted alphabetically or by length, or not
 sorted
 
-.. note:: The previous name of this option was ``sortAlgorithm`` but it is now deprecated and will be removed on next major version.
-
 Allowed values: ``'alpha'``, ``'length'``, ``'none'``
 
 Default value: ``'alpha'``
@@ -23,8 +21,6 @@ Default value: ``'alpha'``
 ~~~~~~~~~~~~~~~~~
 
 Defines the order of import types.
-
-.. note:: The previous name of this option was ``importsOrder`` but it is now deprecated and will be removed on next major version.
 
 Allowed types: ``array``, ``null``
 
@@ -42,10 +38,12 @@ Example #1
 
    --- Original
    +++ New
-   @@ -1,2 +1,2 @@
     <?php
-   -use Z; use A;
-   +use A; use Z;
+   +use AAA;
+   +use const AAB;
+    use function AAC;
+   -use const AAB;
+   -use AAA;
 
 Example #2
 ~~~~~~~~~~
@@ -56,7 +54,6 @@ With configuration: ``['sort_algorithm' => 'length']``.
 
    --- Original
    +++ New
-   @@ -1,5 +1,5 @@
     <?php
    +use Bar;
    +use Acme;
@@ -69,30 +66,12 @@ With configuration: ``['sort_algorithm' => 'length']``.
 Example #3
 ~~~~~~~~~~
 
-*Default* configuration.
-
-.. code-block:: diff
-
-   --- Original
-   +++ New
-   @@ -1,4 +1,4 @@
-    <?php
-   +use AAA;
-   +use const AAB;
-    use function AAC;
-   -use const AAB;
-   -use AAA;
-
-Example #4
-~~~~~~~~~~
-
 With configuration: ``['sort_algorithm' => 'length', 'imports_order' => ['const', 'class', 'function']]``.
 
 .. code-block:: diff
 
    --- Original
    +++ New
-   @@ -1,10 +1,10 @@
     <?php
    +use const BBB;
     use const AAAA;
@@ -107,7 +86,7 @@ With configuration: ``['sort_algorithm' => 'length', 'imports_order' => ['const'
     use function CCC\AA;
    -use function DDD;
 
-Example #5
+Example #4
 ~~~~~~~~~~
 
 With configuration: ``['sort_algorithm' => 'alpha', 'imports_order' => ['const', 'class', 'function']]``.
@@ -116,7 +95,6 @@ With configuration: ``['sort_algorithm' => 'alpha', 'imports_order' => ['const',
 
    --- Original
    +++ New
-   @@ -1,10 +1,10 @@
     <?php
    +use const AAAA;
     use const BBB;
@@ -131,7 +109,7 @@ With configuration: ``['sort_algorithm' => 'alpha', 'imports_order' => ['const',
     use function DDD;
    -use function CCC\AA;
 
-Example #6
+Example #5
 ~~~~~~~~~~
 
 With configuration: ``['sort_algorithm' => 'none', 'imports_order' => ['const', 'class', 'function']]``.
@@ -140,7 +118,7 @@ With configuration: ``['sort_algorithm' => 'none', 'imports_order' => ['const', 
 
    --- Original
    +++ New
-   @@ -2,9 +2,9 @@
+    <?php
     use const BBB;
     use const AAAA;
 

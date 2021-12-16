@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -15,7 +17,7 @@ namespace PhpCsFixer\Tests\Fixer\Phpdoc;
 use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 
 /**
- * @author Graham Campbell <graham@alt-three.com>
+ * @author Graham Campbell <hello@gjcampbell.co.uk>
  *
  * @internal
  *
@@ -25,18 +27,15 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 final class PhpdocScalarFixerTest extends AbstractFixerTestCase
 {
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixCases
      */
-    public function testFix($expected, $input = null, array $config = [])
+    public function testFix(string $expected, ?string $input = null, array $config = []): void
     {
         $this->fixer->configure($config);
         $this->doTest($expected, $input);
     }
 
-    public static function provideFixCases()
+    public static function provideFixCases(): \Generator
     {
         yield 'basic fix' => [
             '<?php
@@ -56,7 +55,7 @@ final class PhpdocScalarFixerTest extends AbstractFixerTestCase
             /**
              * @method int foo()
              * @property int $foo
-             * @property callback $foo
+             * @property callable $foo
              * @property-read bool $bar
              * @property-write float $baz
              */
@@ -214,7 +213,7 @@ final class PhpdocScalarFixerTest extends AbstractFixerTestCase
         yield 'inline doc' => [
             '<?php
             /**
-             * Does stuffs with stuffs.
+             * Does stuff with stuffs.
              *
              * @param array $stuffs {
              *     @type bool $foo
@@ -224,7 +223,7 @@ final class PhpdocScalarFixerTest extends AbstractFixerTestCase
              ',
             '<?php
             /**
-             * Does stuffs with stuffs.
+             * Does stuff with stuffs.
              *
              * @param array $stuffs {
              *     @type boolean $foo

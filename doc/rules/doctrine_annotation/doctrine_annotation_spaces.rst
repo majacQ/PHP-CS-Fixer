@@ -21,7 +21,7 @@ List of tags that must not be treated as Doctrine Annotations.
 
 Allowed types: ``array``
 
-Default value: ``['abstract', 'access', 'code', 'deprec', 'encode', 'exception', 'final', 'ingroup', 'inheritdoc', 'inheritDoc', 'magic', 'name', 'toc', 'tutorial', 'private', 'static', 'staticvar', 'staticVar', 'throw', 'api', 'author', 'category', 'copyright', 'deprecated', 'example', 'filesource', 'global', 'ignore', 'internal', 'license', 'link', 'method', 'package', 'param', 'property', 'property-read', 'property-write', 'return', 'see', 'since', 'source', 'subpackage', 'throws', 'todo', 'TODO', 'usedBy', 'uses', 'var', 'version', 'after', 'afterClass', 'backupGlobals', 'backupStaticAttributes', 'before', 'beforeClass', 'codeCoverageIgnore', 'codeCoverageIgnoreStart', 'codeCoverageIgnoreEnd', 'covers', 'coversDefaultClass', 'coversNothing', 'dataProvider', 'depends', 'expectedException', 'expectedExceptionCode', 'expectedExceptionMessage', 'expectedExceptionMessageRegExp', 'group', 'large', 'medium', 'preserveGlobalState', 'requires', 'runTestsInSeparateProcesses', 'runInSeparateProcess', 'small', 'test', 'testdox', 'ticket', 'uses', 'SuppressWarnings', 'noinspection', 'package_version', 'enduml', 'startuml', 'fix', 'FIXME', 'fixme', 'override']``
+Default value: ``['abstract', 'access', 'code', 'deprec', 'encode', 'exception', 'final', 'ingroup', 'inheritdoc', 'inheritDoc', 'magic', 'name', 'toc', 'tutorial', 'private', 'static', 'staticvar', 'staticVar', 'throw', 'api', 'author', 'category', 'copyright', 'deprecated', 'example', 'filesource', 'global', 'ignore', 'internal', 'license', 'link', 'method', 'package', 'param', 'property', 'property-read', 'property-write', 'return', 'see', 'since', 'source', 'subpackage', 'throws', 'todo', 'TODO', 'usedBy', 'uses', 'var', 'version', 'after', 'afterClass', 'backupGlobals', 'backupStaticAttributes', 'before', 'beforeClass', 'codeCoverageIgnore', 'codeCoverageIgnoreStart', 'codeCoverageIgnoreEnd', 'covers', 'coversDefaultClass', 'coversNothing', 'dataProvider', 'depends', 'expectedException', 'expectedExceptionCode', 'expectedExceptionMessage', 'expectedExceptionMessageRegExp', 'group', 'large', 'medium', 'preserveGlobalState', 'requires', 'runTestsInSeparateProcesses', 'runInSeparateProcess', 'small', 'test', 'testdox', 'ticket', 'uses', 'SuppressWarnings', 'noinspection', 'package_version', 'enduml', 'startuml', 'psalm', 'phpstan', 'template', 'fix', 'FIXME', 'fixme', 'override']``
 
 ``around_parentheses``
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -36,18 +36,6 @@ Default value: ``true``
 ~~~~~~~~~~~~~~~~~
 
 Whether to fix spaces around commas.
-
-Allowed types: ``bool``
-
-Default value: ``true``
-
-``around_argument_assignments``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. warning:: This option is deprecated and will be removed on next major version. Use options ``before_argument_assignments`` and ``after_argument_assignments``
-instead.
-
-Whether to fix spaces around argument assignment operator.
 
 Allowed types: ``bool``
 
@@ -70,19 +58,6 @@ Whether to add, remove or ignore spaces after argument assignment operator.
 Allowed types: ``null``, ``bool``
 
 Default value: ``false``
-
-``around_array_assignments``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. warning:: This option is deprecated and will be removed on next major version. Use options ``before_array_assignments_equals``,
-``after_array_assignments_equals``, ``before_array_assignments_colon`` and
-``after_array_assignments_colon`` instead.
-
-Whether to fix spaces around array assignment operators.
-
-Allowed types: ``bool``
-
-Default value: ``true``
 
 ``before_array_assignments_equals``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -132,7 +107,6 @@ Example #1
 
    --- Original
    +++ New
-   @@ -1,15 +1,15 @@
     <?php
     /**
    - * @Foo ( )
@@ -161,7 +135,6 @@ With configuration: ``['after_array_assignments_equals' => false, 'before_array_
 
    --- Original
    +++ New
-   @@ -1,5 +1,5 @@
     <?php
     /**
    - * @Foo(foo = "foo", bar = {"foo":"foo", "bar"="bar"})

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -15,8 +17,6 @@ namespace PhpCsFixer\Tests\Fixer\Alias;
 use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 
 /**
- * @author SpacePossum
- *
  * @internal
  *
  * @covers \PhpCsFixer\Fixer\Alias\ArrayPushFixer
@@ -24,18 +24,14 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 final class ArrayPushFixerTest extends AbstractFixerTestCase
 {
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixCases
-     * @requires PHP 7.0
      */
-    public function testFix($expected, $input = null)
+    public function testFix(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFixCases()
+    public function provideFixCases(): \Generator
     {
         yield 'minimal' => [
             '<?php $a[] =$b;',
@@ -153,12 +149,12 @@ final class ArrayPushFixerTest extends AbstractFixerTestCase
         ];
 
         yield [
-            '<?php $a->$c[] = $b;', // invalid on PHP5.6
+            '<?php $a->$c[] = $b;',
             '<?php array_push($a->$c, $b);',
         ];
 
         yield [
-            '<?php $a->$c[1]->$d{$a--}->$a[7][] = $b;', // invalid on PHP5.6
+            '<?php $a->$c[1]->$d{$a--}->$a[7][] = $b;',
             '<?php array_push($a->$c[1]->$d{$a--}->$a[7], $b);',
         ];
 
@@ -243,17 +239,66 @@ final class ArrayPushFixerTest extends AbstractFixerTestCase
                 if ($b) {} elseif (foo()) array_push($a, $b);
             ',
         ];
+    }
 
-        if (\PHP_VERSION_ID < 80000) {
-            yield [
-                '<?php $a5{1*3}[2+1][] = $b4{2+1};',
-                '<?php array_push($a5{1*3}[2+1], $b4{2+1});',
-            ];
+    /**
+     * @dataProvider provideFixPre80Cases
+     * @requires PHP <8.0
+     */
+    public function testFixPre80(string $expected, string $input = null): void
+    {
+        $this->doTest($expected, $input);
+    }
 
-            yield [
-                '<?php $a5{1*3}[2+1][] = $b7{2+1};',
-                '<?php array_push($a5{1*3}[2+1], $b7{2+1});',
-            ];
-        }
+    public function provideFixPre80Cases(): \Generator
+    {
+        yield [
+            '<?php $a5{1*3}[2+1][] = $b4{2+1};',
+            '<?php array_push($a5{1*3}[2+1], $b4{2+1});',
+        ];
+
+        yield [
+            '<?php $a5{1*3}[2+1][] = $b7{2+1};',
+            '<?php array_push($a5{1*3}[2+1], $b7{2+1});',
+        ];
+    }
+
+    /**
+     * @dataProvider provideFix80Cases
+     * @requires PHP 8.0
+     */
+    public function testFix80(string $expected, string $input = null): void
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix80Cases(): \Generator
+    {
+        yield [
+            '<?php array_push($b?->c[2], $b19);',
+        ];
+    }
+
+    /**
+     * @dataProvider provideFix81Cases
+     * @requires PHP 8.1
+     */
+    public function testFix81(string $expected, string $input): void
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix81Cases(): \Generator
+    {
+        yield 'simple 8.1' => [
+            '<?php
+                $a[] = $b;
+                $a = array_push(...);
+            ',
+            '<?php
+                array_push($a, $b);
+                $a = array_push(...);
+            ',
+        ];
     }
 }

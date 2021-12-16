@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -24,19 +26,18 @@ use PhpCsFixer\Tokenizer\Tokens;
 final class ClassyAnalyzerTest extends TestCase
 {
     /**
-     * @param string           $source
      * @param array<int, bool> $expected
      *
      * @dataProvider provideIsClassyInvocationCases
      */
-    public function testIsClassyInvocation($source, array $expected)
+    public function testIsClassyInvocation(string $source, array $expected): void
     {
         self::assertClassyInvocation($source, $expected);
     }
 
-    public function provideIsClassyInvocationCases()
+    public function provideIsClassyInvocationCases(): \Generator
     {
-        return [
+        yield from [
             [
                 '<?php new Foo;',
                 [3 => true],
@@ -81,7 +82,7 @@ final class ClassyAnalyzerTest extends TestCase
                 '<?php class Foo { use A, B\C, \D, E { A::bar insteadof \E; } }',
                 [3 => false, 9 => true, 12 => false, 14 => true, 18 => true, 21 => true, 25 => true, 32 => true],
             ],
-            [
+            'with reference' => [
                 '<?php function foo(Foo $foo, Bar &$bar, \Baz ...$baz, Foo\Bar $fooBar) {}',
                 [3 => false, 5 => true, 10 => true, 17 => true, 23 => false, 25 => true],
             ],
@@ -101,23 +102,24 @@ final class ClassyAnalyzerTest extends TestCase
                 '<?php foo(); \bar();',
                 [1 => false, 7 => false],
             ],
+            [
+                '<?php function foo(): \Foo {}',
+                [3 => false, 9 => true],
+            ],
+            [
+                '<?php function foo(?Foo $foo, ?Foo\Bar $fooBar): ?\Foo {}',
+                [3 => false, 6 => true, 12 => false, 14 => true, 22 => true],
+            ],
+            [
+                '<?php function foo(iterable $foo): string {}',
+                [3 => false, 5 => false, 11 => false],
+            ],
+            [
+                '<?php function foo(?int $foo): ?string {}',
+                [3 => false, 6 => false, 13 => false],
+            ],
         ];
-    }
 
-    /**
-     * @param string           $source
-     * @param array<int, bool> $expected
-     *
-     * @dataProvider provideIsClassyInvocation70Cases
-     * @requires PHP 7.0
-     */
-    public function testIsClassyInvocation70($source, array $expected)
-    {
-        self::assertClassyInvocation($source, $expected);
-    }
-
-    public function provideIsClassyInvocation70Cases()
-    {
         yield [
             '<?php function foo(int $foo, string &$bar): self {}',
             [3 => false, 5 => false, 10 => false, 17 => false],
@@ -142,52 +144,17 @@ final class ClassyAnalyzerTest extends TestCase
     }
 
     /**
-     * @param string           $source
-     * @param array<int, bool> $expected
-     *
-     * @dataProvider provideIsClassyInvocation71Cases
-     * @requires PHP 7.1
-     */
-    public function testIsClassyInvocation71($source, array $expected)
-    {
-        self::assertClassyInvocation($source, $expected);
-    }
-
-    public function provideIsClassyInvocation71Cases()
-    {
-        return [
-            [
-                '<?php function foo(): \Foo {}',
-                [3 => false, 9 => true],
-            ],
-            [
-                '<?php function foo(?Foo $foo, ?Foo\Bar $fooBar): ?\Foo {}',
-                [3 => false, 6 => true, 12 => false, 14 => true, 22 => true],
-            ],
-            [
-                '<?php function foo(iterable $foo): string {}',
-                [3 => false, 5 => false, 11 => false],
-            ],
-            [
-                '<?php function foo(?int $foo): ?string {}',
-                [3 => false, 6 => false, 13 => false],
-            ],
-        ];
-    }
-
-    /**
-     * @param string           $source
      * @param array<int, bool> $expected
      *
      * @dataProvider provideIsClassyInvocation80Cases
      * @requires PHP 8.0
      */
-    public function testIsClassyInvocation80($source, array $expected)
+    public function testIsClassyInvocation80(string $source, array $expected): void
     {
         self::assertClassyInvocation($source, $expected);
     }
 
-    public function provideIsClassyInvocation80Cases()
+    public function provideIsClassyInvocation80Cases(): \Generator
     {
         yield [
             '<?php function foo(): \Foo|int {}',
@@ -208,9 +175,38 @@ final class ClassyAnalyzerTest extends TestCase
             '<?php function foo(): int|A|false {}',
             [3 => false, 8 => false, 10 => true, 12 => false],
         ];
+
+        yield [
+            '<?php #[AnAttribute] class Foo {}',
+            [2 => true],
+        ];
     }
 
-    private static function assertClassyInvocation($source, array $expected)
+    /**
+     * @param array<int, bool> $expected
+     *
+     * @dataProvider provideIsClassyInvocation81Cases
+     * @requires PHP 8.1
+     */
+    public function testIsClassyInvocation81(string $source, array $expected): void
+    {
+        self::assertClassyInvocation($source, $expected);
+    }
+
+    public function provideIsClassyInvocation81Cases(): \Generator
+    {
+        yield 'never' => [
+            '<?php function foo(): never {}',
+            [3 => false, 8 => false],
+        ];
+
+        yield 'intersection' => [
+            '<?php function foo(): \Foo&Bar {}',
+            [3 => false, 9 => true, 11 => true],
+        ];
+    }
+
+    private static function assertClassyInvocation(string $source, array $expected): void
     {
         $tokens = Tokens::fromCode($source);
         $analyzer = new ClassyAnalyzer();

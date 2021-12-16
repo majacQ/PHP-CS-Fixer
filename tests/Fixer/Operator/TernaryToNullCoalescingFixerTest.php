@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -19,25 +21,21 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
  *
  * @internal
  *
- * @requires PHP 7.0
  * @covers \PhpCsFixer\Fixer\Operator\TernaryToNullCoalescingFixer
  */
 final class TernaryToNullCoalescingFixerTest extends AbstractFixerTestCase
 {
     /**
      * @dataProvider provideFixCases
-     *
-     * @param string      $expected
-     * @param null|string $input
      */
-    public function testFix($expected, $input = null)
+    public function testFix(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFixCases()
+    public function provideFixCases(): \Generator
     {
-        $tests = [
+        yield from [
             // Do not fix cases.
             ['<?php $x = isset($a) ? $a[1] : null;'],
             ['<?php $x = isset($a) and $a ? $a : "";'],
@@ -177,28 +175,34 @@ null
 ;',
             ],
         ];
+    }
 
-        foreach ($tests as $index => $test) {
-            yield $index => $test;
-        }
+    /**
+     * @dataProvider provideFixPre80Cases
+     * @requires PHP <8.0
+     */
+    public function testFixPre80(string $expected, string $input = null): void
+    {
+        $this->doTest($expected, $input);
+    }
 
-        if (\PHP_VERSION_ID < 80000) {
-            yield ['<?php $x = $a ? $a : isset($b) ? $b : isset($c) ? $c : "";'];
+    public function provideFixPre80Cases(): \Generator
+    {
+        yield ['<?php $x = $a ? $a : isset($b) ? $b : isset($c) ? $c : "";'];
 
-            yield [
-                '<?php $x = $a ?? isset($b) ? $b : isset($c) ? $c : "";',
-                '<?php $x = isset($a) ? $a : isset($b) ? $b : isset($c) ? $c : "";',
-            ];
+        yield [
+            '<?php $x = $a ?? isset($b) ? $b : isset($c) ? $c : "";',
+            '<?php $x = isset($a) ? $a : isset($b) ? $b : isset($c) ? $c : "";',
+        ];
 
-            yield [
-                '<?php $x = /*a1*//*a2*/ /*b*/ $a /*c*/ ?? /*d*/ isset($b) /*e*/ ? /*f*/ $b /*g*/ : /*h*/ isset($c) /*i*/ ? /*j*/ $c /*k*/ : /*l*/ "";',
-                '<?php $x = isset($a) /*a1*//*a2*/ ? /*b*/ $a /*c*/ : /*d*/ isset($b) /*e*/ ? /*f*/ $b /*g*/ : /*h*/ isset($c) /*i*/ ? /*j*/ $c /*k*/ : /*l*/ "";',
-            ];
+        yield [
+            '<?php $x = /*a1*//*a2*/ /*b*/ $a /*c*/ ?? /*d*/ isset($b) /*e*/ ? /*f*/ $b /*g*/ : /*h*/ isset($c) /*i*/ ? /*j*/ $c /*k*/ : /*l*/ "";',
+            '<?php $x = isset($a) /*a1*//*a2*/ ? /*b*/ $a /*c*/ : /*d*/ isset($b) /*e*/ ? /*f*/ $b /*g*/ : /*h*/ isset($c) /*i*/ ? /*j*/ $c /*k*/ : /*l*/ "";',
+        ];
 
-            yield [
-                '<?php $x = /*a1*//*a2*/ /*b*/ $a /*c*/ ?? /*d*/ isset($b) /*e*/ ? /*f*/ $b /*g*/ : /*h*/ isset($c) /*i*/ ? /*j*/ $c /*k*/ : /*l*/ "";',
-                '<?php $x = isset($a) /*a1*//*a2*/ ? /*b*/ $a /*c*/ : /*d*/ isset($b) /*e*/ ? /*f*/ $b /*g*/ : /*h*/ isset($c) /*i*/ ? /*j*/ $c /*k*/ : /*l*/ "";',
-            ];
-        }
+        yield [
+            '<?php $x = /*a1*//*a2*/ /*b*/ $a /*c*/ ?? /*d*/ isset($b) /*e*/ ? /*f*/ $b /*g*/ : /*h*/ isset($c) /*i*/ ? /*j*/ $c /*k*/ : /*l*/ "";',
+            '<?php $x = isset($a) /*a1*//*a2*/ ? /*b*/ $a /*c*/ : /*d*/ isset($b) /*e*/ ? /*f*/ $b /*g*/ : /*h*/ isset($c) /*i*/ ? /*j*/ $c /*k*/ : /*l*/ "";',
+        ];
     }
 }

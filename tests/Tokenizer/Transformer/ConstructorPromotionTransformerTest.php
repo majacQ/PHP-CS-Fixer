@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -24,12 +26,10 @@ use PhpCsFixer\Tokenizer\Tokens;
 final class ConstructorPromotionTransformerTest extends AbstractTransformerTestCase
 {
     /**
-     * @param string $source
-     *
      * @dataProvider provideProcessCases
      * @requires PHP 8.0
      */
-    public function testProcess($source, array $expectedTokens)
+    public function testProcess(array $expectedTokens, string $source): void
     {
         $this->doTest(
             $source,
@@ -42,9 +42,14 @@ final class ConstructorPromotionTransformerTest extends AbstractTransformerTestC
         );
     }
 
-    public function provideProcessCases()
+    public function provideProcessCases(): \Generator
     {
         yield [
+            [
+                14 => CT::T_CONSTRUCTOR_PROPERTY_PROMOTION_PUBLIC,
+                25 => CT::T_CONSTRUCTOR_PROPERTY_PROMOTION_PROTECTED,
+                36 => CT::T_CONSTRUCTOR_PROPERTY_PROMOTION_PRIVATE,
+            ],
             '<?php
 class Point {
     public function __construct(
@@ -54,24 +59,19 @@ class Point {
     ) {}
 }
 ',
-            [
-                14 => CT::T_CONSTRUCTOR_PROPERTY_PROMOTION_PUBLIC,
-                25 => CT::T_CONSTRUCTOR_PROPERTY_PROMOTION_PROTECTED,
-                36 => CT::T_CONSTRUCTOR_PROPERTY_PROMOTION_PRIVATE,
-            ],
         ];
 
         yield [
-            '<?php $a = new class {function/* 1 */__CONSTRUCT/* 2 */(/* 3 */public float $x,protected float $y,private float $z) {}};',
             [
                 16 => CT::T_CONSTRUCTOR_PROPERTY_PROMOTION_PUBLIC,
                 22 => CT::T_CONSTRUCTOR_PROPERTY_PROMOTION_PROTECTED,
                 28 => CT::T_CONSTRUCTOR_PROPERTY_PROMOTION_PRIVATE,
             ],
+            '<?php $a = new class {function/* 1 */__CONSTRUCT/* 2 */(/* 3 */public float $x,protected float $y,private float $z) {}};',
         ];
     }
 
-    public function testNotChange()
+    public function testNotChange(): void
     {
         $code = '<?php
             // class Foo1 {
@@ -121,5 +121,41 @@ class Point {
                 CT::T_CONSTRUCTOR_PROPERTY_PROMOTION_PRIVATE,
             ]));
         }
+    }
+
+    /**
+     * @dataProvider provideFix81Cases
+     * @requires PHP 8.1
+     */
+    public function testFix81(array $expectedTokens, string $source): void
+    {
+        $this->doTest(
+            $source,
+            $expectedTokens,
+            [
+                CT::T_TYPE_ALTERNATION,
+            ]
+        );
+    }
+
+    public function provideFix81Cases(): \Generator
+    {
+        yield 'readonly' => [
+            [
+                14 => CT::T_CONSTRUCTOR_PROPERTY_PROMOTION_PUBLIC,
+                23 => CT::T_CONSTRUCTOR_PROPERTY_PROMOTION_PRIVATE,
+                36 => CT::T_CONSTRUCTOR_PROPERTY_PROMOTION_PUBLIC,
+                52 => CT::T_CONSTRUCTOR_PROPERTY_PROMOTION_PUBLIC,
+            ],
+            '<?php
+class Test {
+    public function __construct(
+        public readonly float $f,
+        private readonly int $i = 0,
+        public readonly array $ary = [],
+        readonly public array $bar = [],
+    ) {}
+}',
+        ];
     }
 }

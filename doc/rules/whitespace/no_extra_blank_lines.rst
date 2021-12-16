@@ -12,7 +12,7 @@ Configuration
 
 List of tokens to fix.
 
-Allowed values: a subset of ``['break', 'case', 'continue', 'curly_brace_block', 'default', 'extra', 'parenthesis_brace_block', 'return', 'square_brace_block', 'switch', 'throw', 'use', 'useTrait', 'use_trait']``
+Allowed values: a subset of ``['break', 'case', 'continue', 'curly_brace_block', 'default', 'extra', 'parenthesis_brace_block', 'return', 'square_brace_block', 'switch', 'throw', 'use', 'use_trait']``
 
 Default value: ``['extra']``
 
@@ -28,7 +28,7 @@ Example #1
 
    --- Original
    +++ New
-   @@ -2,5 +2,4 @@
+    <?php
 
     $foo = array("foo");
 
@@ -44,7 +44,9 @@ With configuration: ``['tokens' => ['break']]``.
 
    --- Original
    +++ New
-   @@ -4,7 +4,6 @@
+    <?php
+
+    switch ($foo) {
         case 41:
             echo "foo";
             break;
@@ -62,7 +64,8 @@ With configuration: ``['tokens' => ['continue']]``.
 
    --- Original
    +++ New
-   @@ -3,6 +3,5 @@
+    <?php
+
     for ($i = 0; $i < 9000; ++$i) {
         if (true) {
             continue;
@@ -79,7 +82,6 @@ With configuration: ``['tokens' => ['curly_brace_block']]``.
 
    --- Original
    +++ New
-   @@ -1,7 +1,5 @@
     <?php
 
     for ($i = 0; $i < 9000; ++$i) {
@@ -97,7 +99,7 @@ With configuration: ``['tokens' => ['extra']]``.
 
    --- Original
    +++ New
-   @@ -2,5 +2,4 @@
+    <?php
 
     $foo = array("foo");
 
@@ -113,7 +115,6 @@ With configuration: ``['tokens' => ['parenthesis_brace_block']]``.
 
    --- Original
    +++ New
-   @@ -1,7 +1,5 @@
     <?php
 
     $foo = array(
@@ -131,7 +132,8 @@ With configuration: ``['tokens' => ['return']]``.
 
    --- Original
    +++ New
-   @@ -3,5 +3,4 @@
+    <?php
+
     function foo($bar)
     {
         return $bar;
@@ -147,7 +149,6 @@ With configuration: ``['tokens' => ['square_brace_block']]``.
 
    --- Original
    +++ New
-   @@ -1,7 +1,5 @@
     <?php
 
     $foo = [
@@ -165,7 +166,8 @@ With configuration: ``['tokens' => ['throw']]``.
 
    --- Original
    +++ New
-   @@ -3,5 +3,4 @@
+    <?php
+
     function foo($bar)
     {
         throw new \Exception("Hello!");
@@ -181,7 +183,8 @@ With configuration: ``['tokens' => ['use']]``.
 
    --- Original
    +++ New
-   @@ -3,9 +3,8 @@
+    <?php
+
     namespace Foo;
 
     use Bar\Baz;
@@ -195,30 +198,12 @@ With configuration: ``['tokens' => ['use']]``.
 Example #11
 ~~~~~~~~~~~
 
-With configuration: ``['tokens' => ['use_trait']]``.
-
-.. code-block:: diff
-
-   --- Original
-   +++ New
-   @@ -3,6 +3,5 @@
-    class Foo
-    {
-        use Bar;
-   -
-        use Baz;
-    }
-
-Example #12
-~~~~~~~~~~~
-
 With configuration: ``['tokens' => ['switch', 'case', 'default']]``.
 
 .. code-block:: diff
 
    --- Original
    +++ New
-   @@ -1,9 +1,6 @@
     <?php
     switch($a) {
    -
@@ -237,9 +222,9 @@ The rule is part of the following rule sets:
 @PhpCsFixer
   Using the `@PhpCsFixer <./../../ruleSets/PhpCsFixer.rst>`_ rule set will enable the ``no_extra_blank_lines`` rule with the config below:
 
-  ``['tokens' => ['break', 'case', 'continue', 'curly_brace_block', 'default', 'extra', 'parenthesis_brace_block', 'return', 'square_brace_block', 'switch', 'throw', 'use', 'use_trait']]``
+  ``['tokens' => ['break', 'case', 'continue', 'curly_brace_block', 'default', 'extra', 'parenthesis_brace_block', 'return', 'square_brace_block', 'switch', 'throw', 'use']]``
 
 @Symfony
   Using the `@Symfony <./../../ruleSets/Symfony.rst>`_ rule set will enable the ``no_extra_blank_lines`` rule with the config below:
 
-  ``['tokens' => ['case', 'continue', 'curly_brace_block', 'default', 'extra', 'parenthesis_brace_block', 'square_brace_block', 'switch', 'throw', 'use', 'use_trait']]``
+  ``['tokens' => ['case', 'continue', 'curly_brace_block', 'default', 'extra', 'parenthesis_brace_block', 'square_brace_block', 'switch', 'throw', 'use']]``

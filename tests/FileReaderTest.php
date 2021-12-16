@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -25,25 +27,24 @@ use PhpCsFixer\Tests\Fixtures\Test\FileReaderTest\StdinFakeStream;
  */
 final class FileReaderTest extends TestCase
 {
-    public static function doTearDownAfterClass()
+    public static function tearDownAfterClass(): void
     {
-        parent::doTearDownAfterClass();
+        parent::tearDownAfterClass();
 
-        // testReadStdinCaches registers a stream wrapper for php so we can mock
+        // testReadStdinCaches registers a stream wrapper for PHP so we can mock
         // php://stdin. Restore the original stream wrapper after this class so
         // we don't affect other tests running after it
         stream_wrapper_restore('php');
     }
 
-    public function testCreateSingleton()
+    public function testCreateSingleton(): void
     {
         $instance = FileReader::createSingleton();
 
-        static::assertInstanceOf(\PhpCsFixer\FileReader::class, $instance);
         static::assertSame($instance, FileReader::createSingleton());
     }
 
-    public function testRead()
+    public function testRead(): void
     {
         $fs = vfsStream::setup('root', null, [
             'foo.php' => '<?php echo "hi";',
@@ -54,7 +55,7 @@ final class FileReaderTest extends TestCase
         static::assertSame('<?php echo "hi";', $reader->read($fs->url().'/foo.php'));
     }
 
-    public function testReadStdinCaches()
+    public function testReadStdinCaches(): void
     {
         $reader = new FileReader();
 
@@ -65,7 +66,7 @@ final class FileReaderTest extends TestCase
         static::assertSame('<?php echo "foo";', $reader->read('php://stdin'));
     }
 
-    public function testThrowsExceptionOnFail()
+    public function testThrowsExceptionOnFail(): void
     {
         $fs = vfsStream::setup();
         $nonExistentFilePath = $fs->url().'/non-existent.php';

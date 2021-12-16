@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -24,19 +26,16 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 final class NoSpacesAfterFunctionNameFixerTest extends AbstractFixerTestCase
 {
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixCases
      */
-    public function testFix($expected, $input = null)
+    public function testFix(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFixCases()
+    public function provideFixCases(): \Generator
     {
-        $tests = [
+        yield from [
             'test function call' => [
                 '<?php abc($a);',
                 '<?php abc ($a);',
@@ -146,63 +145,53 @@ $$e(2);
             ],
         ];
 
-        foreach ($tests as $index => $test) {
-            yield $index => $test;
-        }
+        yield [
+            '<?php echo (new Process())->getOutput();',
+            '<?php echo (new Process())->getOutput ();',
+        ];
 
-        if (\PHP_VERSION_ID < 80000) {
-            yield 'test dynamic by array, curly mix' => [
-                '<?php $a["e"](1); $a{2}(1);',
-                '<?php $a["e"] (1); $a{2} (1);',
-            ];
-
-            yield 'test dynamic by array, curly only' => [
-                '<?php $a{"e"}(1); $a{2}(1);',
-                '<?php $a{"e"} (1); $a{2} (1);',
-            ];
-        }
-    }
-
-    /**
-     * @param string      $expected
-     * @param null|string $input
-     *
-     * @dataProvider provideFix54Cases
-     */
-    public function test54($expected, $input = null)
-    {
-        $this->doTest($expected, $input);
-    }
-
-    public function provideFix54Cases()
-    {
-        return [
-            [
-                '<?php echo (new Process())->getOutput();',
-                '<?php echo (new Process())->getOutput ();',
-            ],
+        yield [
+            '<?php $a()(1);',
+            '<?php $a () (1);',
         ];
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
-     * @dataProvider provideFix70Cases
-     * @requires PHP 7.0
+     * @dataProvider provideFixPre80Cases
+     * @requires PHP <8.0
      */
-    public function test70($expected, $input = null)
+    public function testFixPre80(string $expected, string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFix70Cases()
+    public function provideFixPre80Cases(): \Generator
     {
-        return [
-            [
-                '<?php $a()(1);',
-                '<?php $a () (1);',
-            ],
+        yield 'test dynamic by array, curly mix' => [
+            '<?php $a["e"](1); $a{2}(1);',
+            '<?php $a["e"] (1); $a{2} (1);',
+        ];
+
+        yield 'test dynamic by array, curly only' => [
+            '<?php $a{"e"}(1); $a{2}(1);',
+            '<?php $a{"e"} (1); $a{2} (1);',
+        ];
+    }
+
+    /**
+     * @dataProvider provideFix81Cases
+     * @requires PHP 8.1
+     */
+    public function testFix81(string $expected, ?string $input = null): void
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix81Cases(): \Generator
+    {
+        yield [
+            '<?php strlen(...);',
+            '<?php strlen  (...);',
         ];
     }
 }

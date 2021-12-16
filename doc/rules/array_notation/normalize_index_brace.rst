@@ -14,7 +14,6 @@ Example #1
 
    --- Original
    +++ New
-   @@ -1,2 +1,2 @@
     <?php
    -echo $sample{$index};
    +echo $sample[$index];
@@ -29,6 +28,9 @@ The rule is part of the following rule sets:
 
 @PHP80Migration
   Using the `@PHP80Migration <./../../ruleSets/PHP80Migration.rst>`_ rule set will enable the ``normalize_index_brace`` rule.
+
+@PHP81Migration
+  Using the `@PHP81Migration <./../../ruleSets/PHP81Migration.rst>`_ rule set will enable the ``normalize_index_brace`` rule.
 
 @PhpCsFixer
   Using the `@PhpCsFixer <./../../ruleSets/PhpCsFixer.rst>`_ rule set will enable the ``normalize_index_brace`` rule.

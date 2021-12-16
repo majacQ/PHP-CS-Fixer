@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -16,8 +18,6 @@ use PhpCsFixer\Fixer\Casing\MagicMethodCasingFixer;
 use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 
 /**
- * @author SpacePossum
- *
  * @internal
  *
  * @covers \PhpCsFixer\Fixer\Casing\MagicMethodCasingFixer
@@ -25,17 +25,14 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 final class MagicMethodCasingFixerTest extends AbstractFixerTestCase
 {
     /**
-     * @param string $expected
-     * @param string $input
-     *
      * @dataProvider provideFixCases
      */
-    public function testFix($expected, $input)
+    public function testFix(string $expected, string $input): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFixCases()
+    public function provideFixCases(): \Generator
     {
         $fixerReflection = new \ReflectionClass(MagicMethodCasingFixer::class);
         $property = $fixerReflection->getProperty('magicNames');
@@ -166,90 +163,8 @@ class Foo extends Bar
 }
 ',
         ];
-    }
 
-    /**
-     * @param string      $expected
-     * @param null|string $input
-     *
-     * @dataProvider provideDoNotFixCases
-     */
-    public function testDoNotFix($expected, $input = null)
-    {
-        $this->doTest($expected, $input);
-    }
-
-    public function provideDoNotFixCases()
-    {
-        return [
-            [
-                '<?php
-__Tostring();',
-            ],
-            [
-                '<?php
-function __Tostring() {}',
-            ],
-            [
-                '<?php
-                    #->__sleep()
-                    /** ->__sleep() */
-                    echo $a->__sleep;
-                ',
-            ],
-            [
-                '<?php
-                    class B
-                    {
-                        public function _not_magic()
-                        {
-                        }
-                    }
-                ',
-            ],
-            [
-                '<?php
-                    function __alsoNotMagic()
-                    {
-                    }
-                ',
-            ],
-            [
-                '<?php
-                    function __()
-                    {
-                    }
-                ',
-            ],
-            [
-                '<?php
-                    function a()
-                    {
-                    }
-                ',
-            ],
-            [
-                '<?php
-                    $a->__not_magic();
-                ',
-            ],
-            [
-                '<?php
-                    $a->a();
-                ',
-            ],
-            [
-                '<?php A\B\__callstatic(); echo $a->b;',
-            ],
-        ];
-    }
-
-    /**
-     * @requires PHP 7.0
-     */
-    public function testFixPHP7()
-    {
-        $this->doTest(
+        yield 'PHP 7 syntax' => [
             '<?php
             function __TOSTRING(){} // do not fix
 
@@ -341,18 +256,124 @@ function __Tostring() {}',
             function __ISSET($bar){} // do not fix
 
             $a->__UnSet($foo); // fix
-            '
-        );
+            ',
+        ];
+    }
+
+    /**
+     * @dataProvider provideDoNotFixCases
+     */
+    public function testDoNotFix(string $expected, ?string $input = null): void
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideDoNotFixCases(): array
+    {
+        return [
+            [
+                '<?php
+__Tostring();',
+            ],
+            [
+                '<?php
+function __Tostring() {}',
+            ],
+            [
+                '<?php
+                    #->__sleep()
+                    /** ->__sleep() */
+                    echo $a->__sleep;
+                ',
+            ],
+            [
+                '<?php
+                    class B
+                    {
+                        public function _not_magic()
+                        {
+                        }
+                    }
+                ',
+            ],
+            [
+                '<?php
+                    function __alsoNotMagic()
+                    {
+                    }
+                ',
+            ],
+            [
+                '<?php
+                    function __()
+                    {
+                    }
+                ',
+            ],
+            [
+                '<?php
+                    function a()
+                    {
+                    }
+                ',
+            ],
+            [
+                '<?php
+                    $a->__not_magic();
+                ',
+            ],
+            [
+                '<?php
+                    $a->a();
+                ',
+            ],
+            [
+                '<?php A\B\__callstatic(); echo $a->b;',
+            ],
+        ];
     }
 
     /**
      * @requires PHP 7.3
      */
-    public function testFix73()
+    public function testFix73(): void
     {
         $this->doTest(
             '<?php $foo->__invoke(1, );',
             '<?php $foo->__INVOKE(1, );'
         );
+    }
+
+    /**
+     * @requires PHP 8.0
+     */
+    public function testFix80(): void
+    {
+        $this->doTest(
+            '<?php $foo?->__invoke(1, );',
+            '<?php $foo?->__INVOKE(1, );'
+        );
+    }
+
+    /**
+     * @dataProvider provideFix81Cases
+     * @requires PHP 8.1
+     */
+    public function testFix81(string $expected, string $input = null): void
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix81Cases(): \Generator
+    {
+        yield 'static call to "__set_state".' => [
+            '<?php $f = Foo::__set_state(...);',
+            '<?php $f = Foo::__set_STATE(...);',
+        ];
+
+        yield 'isset' => [
+            '<?php $a->__isset(...);',
+            '<?php $a->__ISSET(...);',
+        ];
     }
 }

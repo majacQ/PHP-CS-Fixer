@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -25,11 +27,8 @@ final class OperatorLinebreakFixerTest extends AbstractFixerTestCase
 {
     /**
      * @dataProvider provideFixCases
-     *
-     * @param string      $expected
-     * @param null|string $input
      */
-    public function testFix($expected, $input = null, array $configuration = null)
+    public function testFix(string $expected, ?string $input = null, ?array $configuration = null): void
     {
         if (null !== $configuration) {
             $this->fixer->configure($configuration);
@@ -38,7 +37,7 @@ final class OperatorLinebreakFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public static function provideFixCases()
+    public static function provideFixCases(): \Generator
     {
         foreach (static::pairs() as $key => $value) {
             yield sprintf('%s when position is "beginning"', $key) => $value;
@@ -176,31 +175,42 @@ return $foo
                 }',
         ];
 
-        if (\PHP_VERSION_ID >= 70000) {
-            yield 'return type' => [
-                '<?php
-                function foo()
-                :
-                bool
-                {};',
-            ];
-        }
+        yield 'return type' => [
+            '<?php
+            function foo()
+            :
+            bool
+            {};',
+        ];
 
         yield 'go to' => ['<?php
                 prepare_value:
                 $objectsPool[$value] = [$id = \count($objectsPool)];
         '];
+
+        yield 'alternative syntax' => [
+            '<?php
+if (true):
+    echo 1;
+else:
+    echo 2;
+endif;
+
+while (true):
+    echo "na";
+endwhile;
+',
+            null,
+            ['position' => 'beginning'],
+        ];
     }
 
     /**
      * @dataProvider provideFix71Cases
      *
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @requires     PHP 7.1
      */
-    public function testFix71($expected, $input = null, array $configuration = null)
+    public function testFix71(string $expected, ?string $input = null, ?array $configuration = null): void
     {
         if (null !== $configuration) {
             $this->fixer->configure($configuration);
@@ -209,7 +219,7 @@ return $foo
         $this->doTest($expected, $input);
     }
 
-    public static function provideFix71Cases()
+    public static function provideFix71Cases(): \Generator
     {
         yield 'nullable type when position is "end"' => [
             '<?php
@@ -223,7 +233,7 @@ return $foo
         ];
     }
 
-    private static function pairs()
+    private static function pairs(): \Generator
     {
         yield 'handle equal sign' => [
             '<?php
@@ -481,7 +491,7 @@ switch ($foo) {
             ',
         ];
 
-        $operator = [
+        $operators = [
             '+', '-', '*', '/', '%', '**', // Arithmetic
             '+=', '-=', '*=', '/=', '%=', '**=', // Arithmetic assignment
             '=', // Assignment
@@ -494,12 +504,14 @@ switch ($foo) {
             '::', // Scope Resolution
         ];
 
-        if (\PHP_VERSION_ID >= 70000) {
-            $operator[] = '??';
-            $operator[] = '<=>';
+        $operators[] = '??';
+        $operators[] = '<=>';
+
+        if (\PHP_VERSION_ID >= 80000) {
+            $operators[] = '?->';
         }
 
-        foreach ($operator as $operator) {
+        foreach ($operators as $operator) {
             yield sprintf('handle %s operator', $operator) => [
                 sprintf('<?php
                     $foo

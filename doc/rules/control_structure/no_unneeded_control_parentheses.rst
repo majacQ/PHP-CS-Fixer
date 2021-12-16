@@ -12,7 +12,7 @@ Configuration
 
 List of control statements to fix.
 
-Allowed types: ``array``
+Allowed values: a subset of ``['break', 'clone', 'continue', 'echo_print', 'return', 'switch_case', 'yield', 'yield_from']``
 
 Default value: ``['break', 'clone', 'continue', 'echo_print', 'return', 'switch_case', 'yield']``
 
@@ -28,7 +28,6 @@ Example #1
 
    --- Original
    +++ New
-   @@ -1,9 +1,9 @@
     <?php
    -while ($x) { while ($y) { break (2); } }
    -clone($a);
@@ -56,7 +55,6 @@ With configuration: ``['statements' => ['break', 'continue']]``.
 
    --- Original
    +++ New
-   @@ -1,9 +1,9 @@
     <?php
    -while ($x) { while ($y) { break (2); } }
    +while ($x) { while ($y) { break 2; } }

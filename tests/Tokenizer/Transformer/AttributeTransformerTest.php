@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -24,17 +26,15 @@ use PhpCsFixer\Tokenizer\Tokens;
 final class AttributeTransformerTest extends AbstractTransformerTestCase
 {
     /**
-     * @param string $source
-     *
      * @dataProvider provideProcessCases
      * @requires PHP 8.0
      */
-    public function testProcess($source, array $expectedTokens)
+    public function testProcess(string $source, array $expectedTokens): void
     {
         $this->doTest($source, $expectedTokens);
     }
 
-    public function provideProcessCases()
+    public function provideProcessCases(): \Generator
     {
         yield ['<?php class Foo {
     #[Listens(ProductCreatedEvent::class)]
@@ -63,14 +63,119 @@ final class AttributeTransformerTest extends AbstractTransformerTestCase
                 16 => CT::T_ATTRIBUTE_CLOSE,
             ],
         ];
+
+        yield [
+            '<?php class Foo {
+                #[ORM\Column("string", ORM\Column::UNIQUE)]
+                #[Assert\Email(["message" => "The email {{ value }} is not a valid email."])]
+                private $email;
+            }',
+            [
+                21 => CT::T_ATTRIBUTE_CLOSE,
+                36 => CT::T_ATTRIBUTE_CLOSE,
+            ],
+        ];
+
+        yield [
+            '<?php
+#[ORM\Id]
+
+#[ConditionalDeclare(PHP_VERSION_ID < 70000+1**2-1>>9+foo(a)+foo((bool)$b))] // gets removed from AST when >= 7.0
+#[IgnoreRedeclaration] // throws no error when already declared, removes the redeclared thing
+function intdiv(int $numerator, int $divisor) {
+}
+
+#[
+Attr1("foo"),Attr2("bar"),
+]
+
+#[PhpAttribute(self::IS_REPEATABLE)]
+class Route
+{
+}
+',
+            [
+                5 => CT::T_ATTRIBUTE_CLOSE,
+                35 => CT::T_ATTRIBUTE_CLOSE,
+                41 => CT::T_ATTRIBUTE_CLOSE,
+                76 => CT::T_ATTRIBUTE_CLOSE,
+                85 => CT::T_ATTRIBUTE_CLOSE,
+            ],
+        ];
+
+        yield [
+            '<?php
+#[Jit]
+function foo() {}
+
+class Foo
+{
+    #[ExampleAttribute]
+    public const FOO = "foo";
+
+    #[ExampleAttribute]
+    public function foo(#[ExampleAttribute] Type $bar) {}
+}
+
+$object = new #[ExampleAttribute] class () {};
+
+$f1 = #[ExampleAttribute] function () {};
+
+$f2 = #[ExampleAttribute] fn() => 1;
+',
+            [
+                3 => CT::T_ATTRIBUTE_CLOSE,
+                22 => CT::T_ATTRIBUTE_CLOSE,
+                37 => CT::T_ATTRIBUTE_CLOSE,
+                47 => CT::T_ATTRIBUTE_CLOSE,
+                67 => CT::T_ATTRIBUTE_CLOSE,
+                84 => CT::T_ATTRIBUTE_CLOSE,
+                101 => CT::T_ATTRIBUTE_CLOSE,
+            ],
+        ];
+
+        yield [
+            '<?php
+#[
+    ORM\Entity,
+    ORM\Table("user")
+]
+class User
+{
+    #[ORM\Id, ORM\Column("integer"), ORM\GeneratedValue]
+    private $id;
+
+    #[ORM\Column("string", ORM\Column::UNIQUE)]
+    #[Assert\Email(["message" => "The email \'{{ value }}\' is not a valid email."])]
+    private $email;
+
+    #[\Doctrine\ORM\ManyToMany(
+        targetEntity: User::class,
+        joinColumn: "group_id",
+        inverseJoinColumn: "user_id",
+        cascade: array("persist", "remove")
+    )]
+    #[Assert\Valid]
+    #[JMSSerializer\XmlList(inline: true, entry: "user")]
+    public $users;
+}
+',
+            [
+                15 => CT::T_ATTRIBUTE_CLOSE,
+                40 => CT::T_ATTRIBUTE_CLOSE,
+                61 => CT::T_ATTRIBUTE_CLOSE,
+                76 => CT::T_ATTRIBUTE_CLOSE,
+                124 => CT::T_ATTRIBUTE_CLOSE,
+                130 => CT::T_ATTRIBUTE_CLOSE,
+                148 => CT::T_ATTRIBUTE_CLOSE,
+            ],
+        ];
     }
 
     /**
-     * @param string $source
-     *
      * @dataProvider provideNotChangeCases
      */
-    public function testNotChange($source)
+    public function testNotChange(string $source): void
     {
         Tokens::clearCache();
 
@@ -81,7 +186,7 @@ final class AttributeTransformerTest extends AbstractTransformerTestCase
         }
     }
 
-    public function provideNotChangeCases()
+    public function provideNotChangeCases(): \Generator
     {
         yield [
             '<?php
@@ -91,10 +196,8 @@ final class AttributeTransformerTest extends AbstractTransformerTestCase
                 // [$e] = $f;',
         ];
 
-        if (\PHP_VERSION_ID >= 70100) {
-            yield [
-                '<?php [$e] = $f;',
-            ];
-        }
+        yield [
+            '<?php [$e] = $f;',
+        ];
     }
 }

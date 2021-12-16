@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -22,18 +24,15 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 final class CleanNamespaceFixerTest extends AbstractFixerTestCase
 {
     /**
-     * @param string $expected
-     * @param string $input
-     *
      * @requires PHP <8.0
      * @dataProvider provideFixCases
      */
-    public function testFix($expected, $input)
+    public function testFix(string $expected, string $input): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFixCases()
+    public function provideFixCases(): \Generator
     {
         yield [
             '<?php use function FooLibrary\Bar\Baz\ClassA as Foo ?>',
@@ -144,9 +143,8 @@ if (
             ',
         ];
 
-        if (\PHP_VERSION_ID >= 70000) {
-            yield [
-                '<?php use function Foo\iter\ { range, map, filter, apply, reduce, foo\operator };
+        yield [
+            '<?php use function Foo\iter\ { range, map, filter, apply, reduce, foo\operator };
 class Foo
 {
     private function foo1(): \Exception\A /** 2 */   // trailing comment
@@ -157,7 +155,7 @@ class Foo
     {
     }
 }',
-                '<?php use function Foo \ iter /* A */ \ { range, map, filter, apply, reduce, foo \ operator };
+            '<?php use function Foo \ iter /* A */ \ { range, map, filter, apply, reduce, foo \ operator };
 class Foo
 {
     private function foo1(): \Exception   \ /* 1 */  A /** 2 */   // trailing comment
@@ -168,7 +166,6 @@ class Foo
     {
     }
 }',
-            ];
-        }
+        ];
     }
 }

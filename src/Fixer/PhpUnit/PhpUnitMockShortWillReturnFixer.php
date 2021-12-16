@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -15,6 +17,9 @@ namespace PhpCsFixer\Fixer\PhpUnit;
 use PhpCsFixer\Fixer\AbstractPhpUnitFixer;
 use PhpCsFixer\FixerDefinition\CodeSample;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
+use PhpCsFixer\FixerDefinition\FixerDefinitionInterface;
+use PhpCsFixer\Tokenizer\Analyzer\FunctionsAnalyzer;
+use PhpCsFixer\Tokenizer\CT;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
 
@@ -24,10 +29,7 @@ use PhpCsFixer\Tokenizer\Tokens;
  */
 final class PhpUnitMockShortWillReturnFixer extends AbstractPhpUnitFixer
 {
-    /**
-     * @internal
-     */
-    const RETURN_METHODS_MAP = [
+    private const RETURN_METHODS_MAP = [
         'returnargument' => 'willReturnArgument',
         'returncallback' => 'willReturnCallback',
         'returnself' => 'willReturnSelf',
@@ -38,7 +40,7 @@ final class PhpUnitMockShortWillReturnFixer extends AbstractPhpUnitFixer
     /**
      * {@inheritdoc}
      */
-    public function getDefinition()
+    public function getDefinition(): FixerDefinitionInterface
     {
         return new FixerDefinition(
             'Usage of PHPUnit\'s mock e.g. `->will($this->returnValue(..))` must be replaced by its shorter equivalent such as `->willReturn(...)`.',
@@ -66,7 +68,7 @@ final class MyTest extends \PHPUnit_Framework_TestCase
     /**
      * {@inheritdoc}
      */
-    public function isRisky()
+    public function isRisky(): bool
     {
         return true;
     }
@@ -74,10 +76,12 @@ final class MyTest extends \PHPUnit_Framework_TestCase
     /**
      * {@inheritdoc}
      */
-    protected function applyPhpUnitClassFix(Tokens $tokens, $startIndex, $endIndex)
+    protected function applyPhpUnitClassFix(Tokens $tokens, int $startIndex, int $endIndex): void
     {
+        $functionsAnalyzer = new FunctionsAnalyzer();
+
         for ($index = $startIndex; $index < $endIndex; ++$index) {
-            if (!$tokens[$index]->isGivenKind(T_OBJECT_OPERATOR)) {
+            if (!$tokens[$index]->isObjectOperator()) {
                 continue;
             }
 
@@ -87,27 +91,30 @@ final class MyTest extends \PHPUnit_Framework_TestCase
             }
 
             $functionToReplaceOpeningBraceIndex = $tokens->getNextMeaningfulToken($functionToReplaceIndex);
+
             if (!$tokens[$functionToReplaceOpeningBraceIndex]->equals('(')) {
                 continue;
             }
 
             $classReferenceIndex = $tokens->getNextMeaningfulToken($functionToReplaceOpeningBraceIndex);
             $objectOperatorIndex = $tokens->getNextMeaningfulToken($classReferenceIndex);
-            if (
-                !($tokens[$classReferenceIndex]->equals([T_VARIABLE, '$this'], false) && $tokens[$objectOperatorIndex]->equals([T_OBJECT_OPERATOR, '->']))
-                && !($tokens[$classReferenceIndex]->equals([T_STRING, 'self'], false) && $tokens[$objectOperatorIndex]->equals([T_DOUBLE_COLON, '::']))
-                && !($tokens[$classReferenceIndex]->equals([T_STATIC, 'static'], false) && $tokens[$objectOperatorIndex]->equals([T_DOUBLE_COLON, '::']))
-            ) {
+            $functionToRemoveIndex = $tokens->getNextMeaningfulToken($objectOperatorIndex);
+
+            if (!$functionsAnalyzer->isTheSameClassCall($tokens, $functionToRemoveIndex)) {
                 continue;
             }
 
-            $functionToRemoveIndex = $tokens->getNextMeaningfulToken($objectOperatorIndex);
-            if (!$tokens[$functionToRemoveIndex]->isGivenKind(T_STRING) || !\array_key_exists(strtolower($tokens[$functionToRemoveIndex]->getContent()), self::RETURN_METHODS_MAP)) {
+            if (!\array_key_exists(strtolower($tokens[$functionToRemoveIndex]->getContent()), self::RETURN_METHODS_MAP)) {
                 continue;
             }
 
             $openingBraceIndex = $tokens->getNextMeaningfulToken($functionToRemoveIndex);
+
             if (!$tokens[$openingBraceIndex]->equals('(')) {
+                continue;
+            }
+
+            if ($tokens[$tokens->getNextMeaningfulToken($openingBraceIndex)]->isGivenKind(CT::T_FIRST_CLASS_CALLABLE)) {
                 continue;
             }
 

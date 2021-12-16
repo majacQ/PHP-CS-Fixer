@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -30,7 +32,7 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
      *
      * @param mixed $annotation
      */
-    public function testConfigureRejectsInvalidControlStatement($annotation)
+    public function testConfigureRejectsInvalidControlStatement($annotation): void
     {
         $this->expectException(InvalidFixerConfigurationException::class);
 
@@ -41,10 +43,7 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
         ]);
     }
 
-    /**
-     * @return array
-     */
-    public function provideInvalidAnnotationCases()
+    public function provideInvalidAnnotationCases(): array
     {
         return [
             'null' => [null],
@@ -59,23 +58,17 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixWithCoversCases
      */
-    public function testFixWithDefaultConfiguration($expected, $input = null)
+    public function testFixWithDefaultConfiguration(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixWithAuthorCases
      */
-    public function testFixWithAuthor($expected, $input = null)
+    public function testFixWithAuthor(string $expected, ?string $input = null): void
     {
         $this->fixer->configure([
             'annotations' => [
@@ -86,7 +79,7 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public function provideFixWithAuthorCases()
+    public function provideFixWithAuthorCases(): array
     {
         return [
             'skip on 1 or 0 occurrences' => [
@@ -193,12 +186,9 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixWithCoversCases
      */
-    public function testFixWithCovers($expected, $input = null)
+    public function testFixWithCovers(string $expected, ?string $input = null): void
     {
         $this->fixer->configure([
             'annotations' => [
@@ -209,7 +199,7 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public function provideFixWithCoversCases()
+    public function provideFixWithCoversCases(): array
     {
         return [
             'skip on 1 or 0 occurrences' => [
@@ -316,12 +306,9 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixWithCoversNothingCases
      */
-    public function testFixWithCoversNothing($expected, $input = null)
+    public function testFixWithCoversNothing(string $expected, ?string $input = null): void
     {
         $this->fixer->configure([
             'annotations' => [
@@ -332,7 +319,7 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public function provideFixWithCoversNothingCases()
+    public function provideFixWithCoversNothingCases(): array
     {
         return [
             'skip on 1 or 0 occurrences' => [
@@ -439,12 +426,9 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixWithDataProviderCases
      */
-    public function testFixWithDataProvider($expected, $input = null)
+    public function testFixWithDataProvider(string $expected, ?string $input = null): void
     {
         $this->fixer->configure([
             'annotations' => [
@@ -455,7 +439,7 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public function provideFixWithDataProviderCases()
+    public function provideFixWithDataProviderCases(): array
     {
         return [
             'skip on 1 or 0 occurrences' => [
@@ -562,12 +546,9 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixWithDependsCases
      */
-    public function testFixWithDepends($expected, $input = null)
+    public function testFixWithDepends(string $expected, ?string $input = null): void
     {
         $this->fixer->configure([
             'annotations' => [
@@ -578,7 +559,7 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public function provideFixWithDependsCases()
+    public function provideFixWithDependsCases(): array
     {
         return [
             'skip on 1 or 0 occurrences' => [
@@ -685,12 +666,9 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixWithGroupCases
      */
-    public function testFixWithGroup($expected, $input = null)
+    public function testFixWithGroup(string $expected, ?string $input = null): void
     {
         $this->fixer->configure([
             'annotations' => [
@@ -701,7 +679,7 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public function provideFixWithGroupCases()
+    public function provideFixWithGroupCases(): array
     {
         return [
             'skip on 1 or 0 occurrences' => [
@@ -808,12 +786,9 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixWithInternalCases
      */
-    public function testFixWithInternal($expected, $input = null)
+    public function testFixWithInternal(string $expected, ?string $input = null): void
     {
         $this->fixer->configure([
             'annotations' => [
@@ -824,7 +799,7 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public function provideFixWithInternalCases()
+    public function provideFixWithInternalCases(): array
     {
         return [
             'skip on 1 or 0 occurrences' => [
@@ -931,12 +906,9 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixWithMethodCases
      */
-    public function testFixWithMethod($expected, $input = null)
+    public function testFixWithMethod(string $expected, ?string $input = null): void
     {
         $this->fixer->configure([
             'annotations' => [
@@ -947,7 +919,7 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public function provideFixWithMethodCases()
+    public function provideFixWithMethodCases(): array
     {
         return [
             'skip on 1 or 0 occurrences' => [
@@ -1058,12 +1030,9 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixWithPropertyCases
      */
-    public function testFixWithProperty($expected, $input = null)
+    public function testFixWithProperty(string $expected, ?string $input = null): void
     {
         $this->fixer->configure([
             'annotations' => [
@@ -1074,7 +1043,7 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public function provideFixWithPropertyCases()
+    public function provideFixWithPropertyCases(): array
     {
         return [
             'skip on 1 or 0 occurrences' => [
@@ -1169,12 +1138,9 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixWithPropertyReadCases
      */
-    public function testFixWithPropertyRead($expected, $input = null)
+    public function testFixWithPropertyRead(string $expected, ?string $input = null): void
     {
         $this->fixer->configure([
             'annotations' => [
@@ -1185,7 +1151,7 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public function provideFixWithPropertyReadCases()
+    public function provideFixWithPropertyReadCases(): array
     {
         return [
             'skip on 1 or 0 occurrences' => [
@@ -1280,12 +1246,9 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixWithPropertyWriteCases
      */
-    public function testFixWithPropertyWrite($expected, $input = null)
+    public function testFixWithPropertyWrite(string $expected, ?string $input = null): void
     {
         $this->fixer->configure([
             'annotations' => [
@@ -1296,7 +1259,7 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public function provideFixWithPropertyWriteCases()
+    public function provideFixWithPropertyWriteCases(): array
     {
         return [
             'skip on 1 or 0 occurrences' => [
@@ -1391,12 +1354,9 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixWithRequiresCases
      */
-    public function testFixWithRequires($expected, $input = null)
+    public function testFixWithRequires(string $expected, ?string $input = null): void
     {
         $this->fixer->configure([
             'annotations' => [
@@ -1407,7 +1367,7 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public function provideFixWithRequiresCases()
+    public function provideFixWithRequiresCases(): array
     {
         return [
             'skip on 1 or 0 occurrences' => [
@@ -1514,12 +1474,9 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixWithThrowsCases
      */
-    public function testFixWithThrows($expected, $input = null)
+    public function testFixWithThrows(string $expected, ?string $input = null): void
     {
         $this->fixer->configure([
             'annotations' => [
@@ -1530,7 +1487,7 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public function provideFixWithThrowsCases()
+    public function provideFixWithThrowsCases(): array
     {
         return [
             'skip on 1 or 0 occurrences' => [
@@ -1653,12 +1610,9 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixWithUsesCases
      */
-    public function testFixWithUses($expected, $input = null)
+    public function testFixWithUses(string $expected, ?string $input = null): void
     {
         $this->fixer->configure([
             'annotations' => [
@@ -1669,7 +1623,7 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public function provideFixWithUsesCases()
+    public function provideFixWithUsesCases(): array
     {
         return [
             'skip on 1 or 0 occurrences' => [
@@ -1776,12 +1730,9 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixWithMultipleConfiguredAnnotationsCases
      */
-    public function testFixWithMultipleConfiguredAnnotations($expected, $input = null)
+    public function testFixWithMultipleConfiguredAnnotations(string $expected, ?string $input = null): void
     {
         $this->fixer->configure([
             'annotations' => [
@@ -1793,7 +1744,7 @@ final class PhpdocOrderByValueFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public function provideFixWithMultipleConfiguredAnnotationsCases()
+    public function provideFixWithMultipleConfiguredAnnotationsCases(): array
     {
         return [
             'skip on 1 or 0 occurrences' => [

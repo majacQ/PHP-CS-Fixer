@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -23,12 +25,9 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 final class PhpdocTagTypeFixerTest extends AbstractFixerTestCase
 {
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixCases
      */
-    public function testFix($expected, $input = null, array $configuration = null)
+    public function testFix(string $expected, ?string $input = null, ?array $configuration = null): void
     {
         if (null !== $configuration) {
             $this->fixer->configure($configuration);
@@ -37,7 +36,7 @@ final class PhpdocTagTypeFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public function provideFixCases()
+    public function provideFixCases(): array
     {
         return [
             [
@@ -345,10 +344,50 @@ final class PhpdocTagTypeFixerTest extends AbstractFixerTestCase
  *
  */',
             ],
+            [
+                '<?php
+/**
+ * @return array{0: float, 1: int}
+ */',
+            ],
+            [
+                '<?php
+/** @internal Please use {@see Foo} instead */',
+                '<?php
+/** {@internal Please use {@see Foo} instead} */',
+            ],
+            [
+                '<?php
+/**
+ * @internal Please use {@see Foo} instead
+ */',
+                '<?php
+/**
+ * {@internal Please use {@see Foo} instead}
+ */',
+            ],
+            [
+                '<?php
+/**
+ *
+ * @internal Please use {@see Foo} instead
+ *
+ */',
+                '<?php
+/**
+ *
+ * {@internal Please use {@see Foo} instead}
+ *
+ */',
+            ],
+            [
+                '<?php
+/** @internal Foo Bar {@see JsonSerializable} */',
+            ],
         ];
     }
 
-    public function testConfigureWithInvalidTagType()
+    public function testConfigureWithInvalidTagType(): void
     {
         $this->expectException(InvalidFixerConfigurationException::class);
         $this->expectExceptionMessageMatches('#^\[phpdoc_tag_type\] Invalid configuration: Unknown tag type "foo"\.#');

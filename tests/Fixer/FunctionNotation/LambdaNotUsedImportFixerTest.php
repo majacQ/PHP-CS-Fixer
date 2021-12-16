@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -15,8 +17,6 @@ namespace PhpCsFixer\Tests\Fixer\FunctionNotation;
 use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 
 /**
- * @author SpacePossum
- *
  * @internal
  *
  * @covers \PhpCsFixer\Fixer\FunctionNotation\LambdaNotUsedImportFixer
@@ -24,17 +24,14 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 final class LambdaNotUsedImportFixerTest extends AbstractFixerTestCase
 {
     /**
-     * @param string $expected
-     * @param string $input
-     *
      * @dataProvider provideFixCases
      */
-    public function testFix($expected, $input)
+    public function testFix(string $expected, string $input): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFixCases()
+    public function provideFixCases(): array
     {
         return [
             'simple' => [
@@ -104,24 +101,6 @@ $f = function() use ($b) { return function($b) { return function($b) { return fu
 $f = function() use ($a) { return function() use ($a) { return function() use ($a) { return function() use ($a) { }; }; }; };
                 ',
             ],
-        ];
-    }
-
-    /**
-     * @param string      $expected
-     * @param null|string $input
-     *
-     * @requires PHP 7.0
-     * @dataProvider providePhp70Cases
-     */
-    public function testFixPhp70($expected, $input = null)
-    {
-        $this->doTest($expected, $input);
-    }
-
-    public function providePhp70Cases()
-    {
-        return [
             'anonymous class' => [
                 '<?php
 $a = function() use ($b) { new class($b){}; }; // do not fix
@@ -136,18 +115,16 @@ $a = function() use ($b) { new class(){ public function foo($b){echo $b;}}; }; /
     }
 
     /**
-     * @param string $expected
-     *
      * @dataProvider provideDoNotFixCases
      */
-    public function testDoNotFix($expected)
+    public function testDoNotFix(string $expected): void
     {
         $this->doTest($expected);
     }
 
-    public function provideDoNotFixCases()
+    public function provideDoNotFixCases(): \Generator
     {
-        $tests = [
+        yield from [
             'reference' => [
                 '<?php $fn = function() use(&$b) {} ?>',
             ],
@@ -201,35 +178,18 @@ $foo();
 ',
             ],
         ];
-
-        foreach ($tests as $index => $test) {
-            yield $index => $test;
-        }
-
-        if (\PHP_VERSION_ID < 70100) {
-            yield 'super global, invalid from PHP7.1' => [
-                '<?php $fn = function() use($_COOKIE) {} ?>',
-            ];
-
-            yield 'super global' => [
-                '<?php $foo = function($c) use ($_COOKIE) {};',
-            ];
-        }
     }
 
     /**
-     * @param string $expected
-     * @param string $input
-     *
      * @dataProvider provideFix80Cases
      * @requires PHP 8.0
      */
-    public function testFix80($expected, $input)
+    public function testFix80(string $expected, string $input): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFix80Cases()
+    public function provideFix80Cases(): \Generator
     {
         yield 'simple' => [
             '<?php $foo = function() {};',

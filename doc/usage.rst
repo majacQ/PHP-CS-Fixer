@@ -2,6 +2,9 @@
 Usage
 =====
 
+The ``fix`` command
+-------------------
+
 The ``fix`` command tries to fix as much coding standards
 problems as possible on a given file or files in a given directory and its subdirectories:
 
@@ -11,8 +14,8 @@ problems as possible on a given file or files in a given directory and its subdi
     $ php php-cs-fixer.phar fix /path/to/file
 
 By default ``--path-mode`` is set to ``override``, which means, that if you specify the path to a file or a directory via
-command arguments, then the paths provided to a ``Finder`` in config file will be ignored. You can use ``--path-mode=intersection``
-to merge paths from the config file and from the argument:
+command arguments, then the paths provided to a ``Finder`` in config file will be ignored. You can also use ``--path-mode=intersection``,
+which will use the intersection of the paths from the config file and from the argument:
 
 .. code-block:: console
 
@@ -20,10 +23,12 @@ to merge paths from the config file and from the argument:
 
 The ``--format`` option for the output format. Supported formats are ``txt`` (default one), ``json``, ``xml``, ``checkstyle``, ``junit`` and ``gitlab``.
 
-NOTE: the output for the following formats are generated in accordance with XML schemas
+NOTE: the output for the following formats are generated in accordance with schemas
 
-* ``checkstyle`` follows the common `"checkstyle" xml schema </doc/report-schema/checkstyle.xsd>`_
-* ``junit`` follows the `JUnit xml schema from Jenkins </doc/report-schema/junit-10.xsd>`_
+* ``checkstyle`` follows the common `"checkstyle" XML schema </doc/schemas/fix/checkstyle.xsd>`_
+* ``json`` follows the `own JSON schema </doc/schemas/fix/schema.json>`_
+* ``junit`` follows the `JUnit XML schema from Jenkins </doc/schemas/fix/junit-10.xsd>`_
+* ``xml`` follows the `own XML schema </doc/schemas/fix/xml.xsd>`_
 
 The ``--quiet`` Do not output any message.
 
@@ -31,18 +36,18 @@ The ``--verbose`` option will show the applied rules. When using the ``txt`` for
 
 NOTE: if there is an error like "errors reported during linting after fixing", you can use this to be even more verbose for debugging purpose
 
-* `-v`: verbose
-* `-vv`: very verbose
-* `-vvv`: debug
+* ``-v``: verbose
+* ``-vv``: very verbose
+* ``-vvv``: debug
 
 The ``--rules`` option limits the rules to apply to the
 project:
 
 .. code-block:: console
 
-    $ php php-cs-fixer.phar fix /path/to/project --rules=@PSR2
+    $ php php-cs-fixer.phar fix /path/to/project --rules=@PSR12
 
-By default the ``PSR1`` and ``PSR2`` rules are used. If the ``--rules`` option is used rules from config files are ignored.
+By default the ``PSR12`` rules are used. If the ``--rules`` option is used rules from config files are ignored.
 
 The ``--rules`` option lets you choose the exact rules to apply (the rule names must be separated by a comma):
 
@@ -71,12 +76,7 @@ Complete configuration for rules can be supplied using a ``json`` formatted stri
 
 The ``--dry-run`` flag will run the fixer without making changes to your files.
 
-The ``--diff`` flag can be used to let the fixer output all the changes it makes.
-
-The ``--diff-format`` option allows to specify in which format the fixer should output the changes it makes:
-
-* ``udiff``: unified diff format;
-* ``sbd``: Sebastianbergmann/diff format (default when using `--diff` without specifying `diff-format`).
+The ``--diff`` flag can be used to let the fixer output all the changes it makes in ``udiff`` format.
 
 The ``--allow-risky`` option (pass ``yes`` or ``no``) allows you to set whether risky rules may run. Default value is taken from config file.
 A rule is considered risky if it could change code behaviour. By default no risky rules are run.
@@ -86,12 +86,9 @@ The ``--stop-on-violation`` flag stops the execution upon first file that needs 
 The ``--show-progress`` option allows you to choose the way process progress is rendered:
 
 * ``none``: disables progress output;
-* ``run-in``: [deprecated] simple single-line progress output;
-* ``estimating``: [deprecated] multiline progress output with number of files and percentage on each line. Note that with this option, the files list is evaluated before processing to get the total number of files and then kept in memory to avoid using the file iterator twice. This has an impact on memory usage so using this option is not recommended on very large projects;
-* ``estimating-max``: [deprecated] same as ``dots``;
 * ``dots``: same as ``estimating`` but using all terminal columns instead of default 80.
 
-If the option is not provided, it defaults to ``run-in`` unless a config file that disables output is used, in which case it defaults to ``none``. This option has no effect if the verbosity of the command is less than ``verbose``.
+If the option is not provided, it defaults to ``dots`` unless a config file that disables output is used, in which case it defaults to ``none``. This option has no effect if the verbosity of the command is less than ``verbose``.
 
 .. code-block:: console
 
@@ -105,7 +102,7 @@ automatically fix anything:
     $ cat foo.php | php php-cs-fixer.phar fix --diff -
 
 Finally, if you don't need BC kept on CLI level, you might use `PHP_CS_FIXER_FUTURE_MODE` to start using options that
-would be default in next MAJOR release (unified differ, estimating, full-width progress indicator):
+would be default in next MAJOR release and to forbid using deprecated configuration:
 
 .. code-block:: console
 
@@ -120,6 +117,35 @@ fixed but without actually modifying them:
 
 By using ``--using-cache`` option with ``yes`` or ``no`` you can set if the caching
 mechanism should be used.
+
+The ``list-files`` command
+--------------------------
+
+The ``list-files`` command will list all files which need fixing.
+
+.. code-block:: console
+
+    $ php php-cs-fixer.phar list-files
+
+The ``--config`` option can be used, like in the ``fix`` command, to tell from which path a config file should be loaded.
+
+.. code-block:: console
+
+    $ php php-cs-fixer.phar list-files --config=.php-cs-fixer.dist.php
+
+The output is built in a form that its easy to use in combination with ``xargs`` command in a linux pipe.
+This can be useful e.g. in situations where the caching mechanism might not be available (CI, Docker) and distribute
+fixing across several processes might speedup the process.
+
+Note: You need to pass the config to the ``fix`` command, in order to make it work with several files being passed by ``list-files``.
+
+.. code-block:: console
+
+    $ php php-cs-fixer.phar list-files --config=.php-cs-fixer.dist.php | xargs -n 10 -P 8 php php-cs-fixer.phar fix --config=.php-cs-fixer.dist.php --path-mode intersection -v
+
+* ``-n`` defines how many files a single subprocess process
+* ``-P`` defines how many subprocesses the shell is allowed to spawn for parallel processing (usually similar to the number of CPUs your system has)
+
 
 Rule descriptions
 -----------------
@@ -161,7 +187,7 @@ Cache file can be specified via ``--cache-file`` option or config file:
     <?php
 
     $config = new PhpCsFixer\Config();
-    return $config->setCacheFile(__DIR__.'/.php_cs.cache');
+    return $config->setCacheFile(__DIR__.'/.php-cs-fixer.cache');
 
 Using PHP CS Fixer on CI
 ------------------------
@@ -179,8 +205,8 @@ Then, add the following command to your CI:
     $ IFS='
     $ '
     $ CHANGED_FILES=$(git diff --name-only --diff-filter=ACMRTUXB "${COMMIT_RANGE}")
-    $ if ! echo "${CHANGED_FILES}" | grep -qE "^(\\.php_cs(\\.dist)?|composer\\.lock)$"; then EXTRA_ARGS=$(printf -- '--path-mode=intersection\n--\n%s' "${CHANGED_FILES}"); else EXTRA_ARGS=''; fi
-    $ vendor/bin/php-cs-fixer fix --config=.php_cs.dist -v --dry-run --stop-on-violation --using-cache=no ${EXTRA_ARGS}
+    $ if ! echo "${CHANGED_FILES}" | grep -qE "^(\\.php-cs-fixer(\\.dist)?\\.php|composer\\.lock)$"; then EXTRA_ARGS=$(printf -- '--path-mode=intersection\n--\n%s' "${CHANGED_FILES}"); else EXTRA_ARGS=''; fi
+    $ vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php -v --dry-run --stop-on-violation --using-cache=no ${EXTRA_ARGS}
 
 Where ``$COMMIT_RANGE`` is your range of commits, e.g. ``$TRAVIS_COMMIT_RANGE`` or ``HEAD~..HEAD``.
 

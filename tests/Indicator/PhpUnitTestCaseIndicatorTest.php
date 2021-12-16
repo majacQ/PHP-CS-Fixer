@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -17,44 +19,39 @@ use PhpCsFixer\Tests\TestCase;
 use PhpCsFixer\Tokenizer\Tokens;
 
 /**
- * @author SpacePossum
- *
  * @internal
  * @covers \PhpCsFixer\Indicator\PhpUnitTestCaseIndicator
  */
 final class PhpUnitTestCaseIndicatorTest extends TestCase
 {
     /**
-     * @var PhpUnitTestCaseIndicator
+     * @var null|PhpUnitTestCaseIndicator
      */
     private $indicator;
 
-    protected function doSetUp()
+    protected function setUp(): void
     {
         $this->indicator = new PhpUnitTestCaseIndicator();
 
-        parent::doSetUp();
+        parent::setUp();
     }
 
-    protected function doTearDown()
+    protected function tearDown(): void
     {
         $this->indicator = null;
 
-        parent::doTearDown();
+        parent::tearDown();
     }
 
     /**
-     * @param bool $expected
-     * @param int  $index
-     *
      * @dataProvider provideIsPhpUnitClassCases
      */
-    public function testIsPhpUnitClass($expected, Tokens $tokens, $index)
+    public function testIsPhpUnitClass(bool $expected, Tokens $tokens, int $index): void
     {
         static::assertSame($expected, $this->indicator->isPhpUnitClass($tokens, $index));
     }
 
-    public function provideIsPhpUnitClassCases()
+    public function provideIsPhpUnitClassCases(): array
     {
         return [
             'Test class' => [
@@ -118,10 +115,15 @@ class Foo implements TestInterface, SomethingElse
                 Tokens::fromCode('<?php final class MyClass {}'),
                 3,
             ],
+            'Anonymous class' => [
+                false,
+                Tokens::fromCode('<?php $a = new class {};'),
+                7,
+            ],
         ];
     }
 
-    public function testThrowsExceptionIfNotClass()
+    public function testThrowsExceptionIfNotClass(): void
     {
         $tokens = Tokens::fromCode('<?php echo 1;');
 
@@ -133,11 +135,10 @@ class Foo implements TestInterface, SomethingElse
 
     /**
      * @param array<int,int> $expectedIndexes
-     * @param string         $code
      *
      * @dataProvider provideFindPhpUnitClassesCases
      */
-    public function testFindPhpUnitClasses(array $expectedIndexes, $code)
+    public function testFindPhpUnitClasses(array $expectedIndexes, string $code): void
     {
         $tokens = Tokens::fromCode($code);
 
@@ -147,7 +148,7 @@ class Foo implements TestInterface, SomethingElse
         static::assertSame($expectedIndexes, $classes);
     }
 
-    public function provideFindPhpUnitClassesCases()
+    public function provideFindPhpUnitClassesCases(): array
     {
         return [
             'empty' => [

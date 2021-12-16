@@ -13,8 +13,6 @@ Configuration
 
 Whether definitions should be multiline.
 
-.. note:: The previous name of this option was ``multiLineExtendsEachSingleLine`` but it is now deprecated and will be removed on next major version.
-
 Allowed types: ``bool``
 
 Default value: ``false``
@@ -23,8 +21,6 @@ Default value: ``false``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Whether definitions should be single line when including a single item.
-
-.. note:: The previous name of this option was ``singleItemSingleLine`` but it is now deprecated and will be removed on next major version.
 
 Allowed types: ``bool``
 
@@ -35,7 +31,15 @@ Default value: ``false``
 
 Whether definitions should be single line.
 
-.. note:: The previous name of this option was ``singleLine`` but it is now deprecated and will be removed on next major version.
+Allowed types: ``bool``
+
+Default value: ``false``
+
+``space_before_parenthesis``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Whether there should be a single space after the parenthesis of anonymous class
+(PSR12) or not.
 
 Allowed types: ``bool``
 
@@ -53,7 +57,6 @@ Example #1
 
    --- Original
    +++ New
-   @@ -1,13 +1,13 @@
     <?php
 
    -class  Foo  extends  Bar  implements  Baz,  BarBaz
@@ -71,22 +74,10 @@ Example #1
     {
     }
 
-Example #2
-~~~~~~~~~~
-
-*Default* configuration.
-
-.. code-block:: diff
-
-   --- Original
-   +++ New
-   @@ -1,3 +1,3 @@
-    <?php
-
    -$foo = new  class  extends  Bar  implements  Baz,  BarBaz {};
    +$foo = new class extends Bar implements Baz, BarBaz {};
 
-Example #3
+Example #2
 ~~~~~~~~~~
 
 With configuration: ``['single_line' => true]``.
@@ -95,7 +86,6 @@ With configuration: ``['single_line' => true]``.
 
    --- Original
    +++ New
-   @@ -1,6 +1,4 @@
     <?php
 
    -class Foo
@@ -104,7 +94,7 @@ With configuration: ``['single_line' => true]``.
    +class Foo extends Bar implements Baz, BarBaz
     {}
 
-Example #4
+Example #3
 ~~~~~~~~~~
 
 With configuration: ``['single_item_single_line' => true]``.
@@ -113,7 +103,6 @@ With configuration: ``['single_item_single_line' => true]``.
 
    --- Original
    +++ New
-   @@ -1,6 +1,4 @@
     <?php
 
    -class Foo
@@ -122,7 +111,7 @@ With configuration: ``['single_item_single_line' => true]``.
    +class Foo extends Bar implements Baz
     {}
 
-Example #5
+Example #4
 ~~~~~~~~~~
 
 With configuration: ``['multi_line_extends_each_single_line' => true]``.
@@ -131,7 +120,6 @@ With configuration: ``['multi_line_extends_each_single_line' => true]``.
 
    --- Original
    +++ New
-   @@ -1,5 +1,7 @@
     <?php
 
     interface Bar extends
@@ -141,13 +129,28 @@ With configuration: ``['multi_line_extends_each_single_line' => true]``.
    +    FooBarBaz
     {}
 
+Example #5
+~~~~~~~~~~
+
+With configuration: ``['space_before_parenthesis' => true]``.
+
+.. code-block:: diff
+
+   --- Original
+   +++ New
+    <?php
+   -$foo = new class(){};
+   +$foo = new class () {};
+
 Rule sets
 ---------
 
 The rule is part of the following rule sets:
 
 @PSR12
-  Using the `@PSR12 <./../../ruleSets/PSR12.rst>`_ rule set will enable the ``class_definition`` rule with the default config.
+  Using the `@PSR12 <./../../ruleSets/PSR12.rst>`_ rule set will enable the ``class_definition`` rule with the config below:
+
+  ``['space_before_parenthesis' => true]``
 
 @PSR2
   Using the `@PSR2 <./../../ruleSets/PSR2.rst>`_ rule set will enable the ``class_definition`` rule with the default config.

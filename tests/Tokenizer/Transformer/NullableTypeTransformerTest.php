@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -25,12 +27,9 @@ use PhpCsFixer\Tokenizer\CT;
 final class NullableTypeTransformerTest extends AbstractTransformerTestCase
 {
     /**
-     * @param string $source
-     *
      * @dataProvider provideProcessCases
-     * @requires PHP 7.1
      */
-    public function testProcess($source, array $expectedTokens = [])
+    public function testProcess(string $source, array $expectedTokens = []): void
     {
         $this->doTest(
             $source,
@@ -41,7 +40,7 @@ final class NullableTypeTransformerTest extends AbstractTransformerTestCase
         );
     }
 
-    public function provideProcessCases()
+    public function provideProcessCases(): array
     {
         return [
             [
@@ -69,12 +68,10 @@ final class NullableTypeTransformerTest extends AbstractTransformerTestCase
     }
 
     /**
-     * @param string $source
-     *
      * @dataProvider provideProcess74Cases
      * @requires PHP 7.4
      */
-    public function testProcess74($source, array $expectedTokens = [])
+    public function testProcess74(string $source, array $expectedTokens = []): void
     {
         $this->doTest(
             $source,
@@ -85,7 +82,7 @@ final class NullableTypeTransformerTest extends AbstractTransformerTestCase
         );
     }
 
-    public function provideProcess74Cases()
+    public function provideProcess74Cases(): array
     {
         return [
             [
@@ -137,12 +134,10 @@ final class NullableTypeTransformerTest extends AbstractTransformerTestCase
     }
 
     /**
-     * @param string $source
-     *
      * @dataProvider provideProcess80Cases
      * @requires PHP 8.0
      */
-    public function testProcess80($source, array $expectedTokens = [])
+    public function testProcess80(array $expectedTokens, string $source): void
     {
         $this->doTest(
             $source,
@@ -153,26 +148,71 @@ final class NullableTypeTransformerTest extends AbstractTransformerTestCase
         );
     }
 
-    public function provideProcess80Cases()
+    public function provideProcess80Cases(): \Generator
     {
-        return [
+        yield [
             [
-                '<?php
-                    class Foo
-                    {
-                        public function __construct(
-                            private ?string $foo = null,
-                            protected ?string $bar = null,
-                            public ?string $xyz = null,
-                        ) {
-                        }
-                    }',
-                [
-                    17 => CT::T_NULLABLE_TYPE,
-                    29 => CT::T_NULLABLE_TYPE,
-                    41 => CT::T_NULLABLE_TYPE,
-                ],
+                17 => CT::T_NULLABLE_TYPE,
+                29 => CT::T_NULLABLE_TYPE,
+                41 => CT::T_NULLABLE_TYPE,
             ],
+            '<?php
+                class Foo
+                {
+                    public function __construct(
+                        private ?string $foo = null,
+                        protected ?string $bar = null,
+                        public ?string $xyz = null,
+                    ) {
+                    }
+                }
+            ',
+        ];
+
+        yield [
+            [
+                10 => CT::T_NULLABLE_TYPE,
+            ],
+            '<?php
+                function test(#[TestAttribute] ?User $user) {}
+            ',
+        ];
+    }
+
+    /**
+     * @dataProvider provideProcess81Cases
+     * @requires PHP 8.1
+     */
+    public function testProcess81(array $expectedTokens, string $source): void
+    {
+        $this->doTest(
+            $source,
+            $expectedTokens,
+            [
+                CT::T_NULLABLE_TYPE,
+            ]
+        );
+    }
+
+    public function provideProcess81Cases(): \Generator
+    {
+        yield [
+            [
+                19 => CT::T_NULLABLE_TYPE,
+                33 => CT::T_NULLABLE_TYPE,
+                47 => CT::T_NULLABLE_TYPE,
+            ],
+            '<?php
+                class Foo
+                {
+                    public function __construct(
+                        private readonly ?string $foo = null,
+                        protected readonly ?string $bar = null,
+                        public readonly ?string $xyz = null,
+                    ) {
+                    }
+                }
+            ',
         ];
     }
 }

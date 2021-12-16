@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -12,6 +14,7 @@
 
 namespace PhpCsFixer\Tests\Fixer\PhpUnit;
 
+use PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException;
 use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 
 /**
@@ -24,26 +27,9 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 final class PhpUnitStrictFixerTest extends AbstractFixerTestCase
 {
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
-     * @group legacy
-     * @dataProvider provideTestFixCases
-     * @expectedDeprecation Passing "assertions" at the root of the configuration for rule "php_unit_strict" is deprecated and will not be supported in 3.0, use "assertions" => array(...) option instead.
-     */
-    public function testLegacyFix($expected, $input = null)
-    {
-        $this->fixer->configure(array_keys($this->getMethodsMap()));
-        $this->doTest($expected, $input);
-    }
-
-    /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideTestFixCases
      */
-    public function testFix($expected, $input = null)
+    public function testFix(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
 
@@ -51,7 +37,7 @@ final class PhpUnitStrictFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public function provideTestFixCases()
+    public function provideTestFixCases(): array
     {
         $cases = [
             ['<?php $self->foo();'],
@@ -62,34 +48,42 @@ final class PhpUnitStrictFixerTest extends AbstractFixerTestCase
             $cases[] = [self::generateTest("\$sth->{$methodBefore}(1, 1);")];
             $cases[] = [self::generateTest("\$sth->{$methodAfter}(1, 1);")];
             $cases[] = [self::generateTest("\$this->{$methodBefore}(1, 2, 'message', \$toMuch);")];
+
             $cases[] = [
                 self::generateTest("\$this->{$methodAfter}(1, 2);"),
                 self::generateTest("\$this->{$methodBefore}(1, 2);"),
             ];
+
             $cases[] = [
                 self::generateTest("\$this->{$methodAfter}(1, 2); \$this->{$methodAfter}(1, 2);"),
                 self::generateTest("\$this->{$methodBefore}(1, 2); \$this->{$methodBefore}(1, 2);"),
             ];
+
             $cases[] = [
-                self::generateTest("\$this->{$methodAfter}(1, 2, 'descr');"),
-                self::generateTest("\$this->{$methodBefore}(1, 2, 'descr');"),
+                self::generateTest("\$this->{$methodAfter}(1, 2, 'description');"),
+                self::generateTest("\$this->{$methodBefore}(1, 2, 'description');"),
             ];
+
             $cases[] = [
                 self::generateTest("\$this->/*aaa*/{$methodAfter} \t /**bbb*/  ( /*ccc*/1  , 2);"),
                 self::generateTest("\$this->/*aaa*/{$methodBefore} \t /**bbb*/  ( /*ccc*/1  , 2);"),
             ];
+
             $cases[] = [
                 self::generateTest("\$this->{$methodAfter}(\$expectedTokens->count() + 10, \$tokens->count() ? 10 : 20 , 'Test');"),
                 self::generateTest("\$this->{$methodBefore}(\$expectedTokens->count() + 10, \$tokens->count() ? 10 : 20 , 'Test');"),
             ];
+
             $cases[] = [
                 self::generateTest("self::{$methodAfter}(1, 2);"),
                 self::generateTest("self::{$methodBefore}(1, 2);"),
             ];
+
             $cases[] = [
                 self::generateTest("static::{$methodAfter}(1, 2);"),
                 self::generateTest("static::{$methodBefore}(1, 2);"),
             ];
+
             $cases[] = [
                 self::generateTest("STATIC::{$methodAfter}(1, 2);"),
                 self::generateTest("STATIC::{$methodBefore}(1, 2);"),
@@ -102,19 +96,18 @@ final class PhpUnitStrictFixerTest extends AbstractFixerTestCase
     /**
      * Only method calls with 2 or 3 arguments should be fixed.
      *
-     * @param string $expected
-     *
      * @dataProvider provideTestNoFixWithWrongNumberOfArgumentsCases
      */
-    public function testNoFixWithWrongNumberOfArguments($expected)
+    public function testNoFixWithWrongNumberOfArguments(string $expected): void
     {
         $this->fixer->configure(['assertions' => array_keys($this->getMethodsMap())]);
         $this->doTest($expected);
     }
 
-    public function provideTestNoFixWithWrongNumberOfArgumentsCases()
+    public function provideTestNoFixWithWrongNumberOfArgumentsCases(): array
     {
         $cases = [];
+
         foreach ($this->getMethodsMap() as $candidate => $fix) {
             $cases[sprintf('do not change call to "%s" without arguments.', $candidate)] = [
                 self::generateTest(sprintf('$this->%s();', $candidate)),
@@ -136,27 +129,24 @@ final class PhpUnitStrictFixerTest extends AbstractFixerTestCase
         return $cases;
     }
 
-    public function testInvalidConfig()
+    public function testInvalidConfig(): void
     {
-        $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
+        $this->expectException(InvalidFixerConfigurationException::class);
         $this->expectExceptionMessageMatches('/^\[php_unit_strict\] Invalid configuration: The option "assertions" .*\.$/');
 
         $this->fixer->configure(['assertions' => ['__TEST__']]);
     }
 
     /**
-     * @param string $expected
-     * @param string $input
-     *
      * @requires PHP 7.3
      * @dataProvider provideFix73Cases
      */
-    public function testFix73($expected, $input)
+    public function testFix73(string $expected, string $input): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFix73Cases()
+    public function provideFix73Cases(): \Generator
     {
         foreach ($this->getMethodsMap() as $methodBefore => $methodAfter) {
             yield [
@@ -174,7 +164,7 @@ final class PhpUnitStrictFixerTest extends AbstractFixerTestCase
     /**
      * @return array<string, string>
      */
-    private function getMethodsMap()
+    private function getMethodsMap(): array
     {
         return [
             'assertAttributeEquals' => 'assertAttributeSame',
@@ -184,12 +174,7 @@ final class PhpUnitStrictFixerTest extends AbstractFixerTestCase
         ];
     }
 
-    /**
-     * @param string $content
-     *
-     * @return string
-     */
-    private static function generateTest($content)
+    private static function generateTest(string $content): string
     {
         return "<?php final class FooTest extends \\PHPUnit_Framework_TestCase {\n    public function testSomething() {\n        ".$content."\n    }\n}\n";
     }

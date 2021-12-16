@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -29,12 +31,19 @@ use Symfony\Component\Console\Tester\CommandTester;
  */
 final class PharTest extends AbstractSmokeTest
 {
+    /**
+     * @var string
+     */
     private static $pharCwd;
+
+    /**
+     * @var string
+     */
     private static $pharName;
 
-    public static function doSetUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
-        parent::doSetUpBeforeClass();
+        parent::setUpBeforeClass();
 
         self::$pharCwd = __DIR__.'/../..';
         self::$pharName = 'php-cs-fixer.phar';
@@ -44,7 +53,7 @@ final class PharTest extends AbstractSmokeTest
         }
     }
 
-    public function testVersion()
+    public function testVersion(): void
     {
         static::assertMatchesRegularExpression(
             '/^.* '.Application::VERSION.'(?: '.Application::VERSION_CODENAME.')? by .*$/',
@@ -52,7 +61,7 @@ final class PharTest extends AbstractSmokeTest
         );
     }
 
-    public function testDescribe()
+    public function testDescribe(): void
     {
         $command = new DescribeCommand();
 
@@ -71,7 +80,7 @@ final class PharTest extends AbstractSmokeTest
         );
     }
 
-    public function testFix()
+    public function testFix(): void
     {
         static::assertSame(
             0,
@@ -79,7 +88,7 @@ final class PharTest extends AbstractSmokeTest
         );
     }
 
-    public function testFixHelp()
+    public function testFixHelp(): void
     {
         static::assertSame(
             0,
@@ -87,12 +96,7 @@ final class PharTest extends AbstractSmokeTest
         );
     }
 
-    /**
-     * @param string $params
-     *
-     * @return CliResult
-     */
-    private static function executePharCommand($params)
+    private static function executePharCommand(string $params): CliResult
     {
         return CommandExecutor::create('php '.self::$pharName.' '.$params, self::$pharCwd)->getResult();
     }

@@ -3,11 +3,12 @@ Rule ``random_api_migration``
 =============================
 
 Replaces ``rand``, ``srand``, ``getrandmax`` functions calls with their ``mt_*``
-analogs.
+analogs or ``random_int``.
 
 .. warning:: Using this rule is risky.
 
-   Risky when the configured functions are overridden.
+   Risky when the configured functions are overridden. Or when relying on the
+   seed based generating of the numbers.
 
 Configuration
 -------------
@@ -33,7 +34,6 @@ Example #1
 
    --- Original
    +++ New
-   @@ -1,4 +1,4 @@
     <?php
    -$a = getrandmax();
    -$a = rand($b, $c);
@@ -51,7 +51,6 @@ With configuration: ``['replacements' => ['getrandmax' => 'mt_getrandmax']]``.
 
    --- Original
    +++ New
-   @@ -1,4 +1,4 @@
     <?php
    -$a = getrandmax();
    +$a = mt_getrandmax();
@@ -67,7 +66,6 @@ With configuration: ``['replacements' => ['rand' => 'random_int']]``.
 
    --- Original
    +++ New
-   @@ -1 +1 @@
    -<?php $a = rand($b, $c);
    +<?php $a = random_int($b, $c);
 

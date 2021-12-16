@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -25,17 +27,14 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 final class ModernizeTypesCastingFixerTest extends AbstractFixerTestCase
 {
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixCases
      */
-    public function testFix($expected, $input = null)
+    public function testFix(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFixCases()
+    public function provideFixCases(): \Generator
     {
         $multiLinePatternToFix = <<<'FIX'
 <?php $x =
@@ -76,7 +75,7 @@ class overridesIntval
 
     public function usesInval()
     {
-        // that's why it risky
+        // that's why it is risky
         return intval(mt_rand(0, 100));
     }
 }
@@ -94,13 +93,13 @@ class overridesIntval
 
     public function usesInval()
     {
-        // that's why it risky
+        // that's why it is risky
         return (int) (mt_rand(0, 100));
     }
 }
 OVERRIDDEN;
 
-        return [
+        yield from [
             ['<?php $x = "intval";'],
 
             ['<?php $x = ClassA::intval(mt_rand(0, 100));'],
@@ -162,24 +161,6 @@ OVERRIDDEN;
                 '<?php $foo = ((int) $x)**2;',
                 '<?php $foo = intval($x)**2;',
             ],
-        ];
-    }
-
-    /**
-     * @param string $expected
-     * @param string $input
-     *
-     * @requires PHP 7.0
-     * @dataProvider provideFix70Cases
-     */
-    public function testFix70($expected, $input)
-    {
-        $this->doTest($expected, $input);
-    }
-
-    public function provideFix70Cases()
-    {
-        $tests = [
             [
                 '<?php $foo = ((string) $x)[0];',
                 '<?php $foo = strval($x)[0];',
@@ -189,32 +170,35 @@ OVERRIDDEN;
                 '<?php $foo = strval($x + $y)[0];',
             ],
         ];
-
-        foreach ($tests as $index => $test) {
-            yield $index => $test;
-        }
-
-        if (\PHP_VERSION_ID < 80000) {
-            yield [
-                '<?php $foo = ((string) ($x + $y)){0};',
-                '<?php $foo = strval($x + $y){0};',
-            ];
-        }
     }
 
     /**
-     * @param string $expected
-     * @param string $input
-     *
-     * @requires PHP 7.3
-     * @dataProvider provideFix73Cases
+     * @dataProvider provideFixPre80Cases
+     * @requires PHP <8.0
      */
-    public function testFix73($expected, $input)
+    public function testFixPre80(string $expected, string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFix73Cases()
+    public function provideFixPre80Cases(): \Generator
+    {
+        yield [
+            '<?php $foo = ((string) ($x + $y)){0};',
+            '<?php $foo = strval($x + $y){0};',
+        ];
+    }
+
+    /**
+     * @requires PHP 7.3
+     * @dataProvider provideFix73Cases
+     */
+    public function testFix73(string $expected, string $input): void
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix73Cases(): array
     {
         return [
             [
@@ -235,7 +219,7 @@ OVERRIDDEN;
     /**
      * @requires PHP <8.0
      */
-    public function testFixPrePHP80()
+    public function testFixPrePHP80(): void
     {
         $this->doTest(
             '<?php $a = #
@@ -258,5 +242,21 @@ intval#
  )#
  ;#'
         );
+    }
+
+    /**
+     * @dataProvider provideFix81Cases
+     * @requires PHP 8.1
+     */
+    public function testFix81(string $expected, ?string $input = null): void
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix81Cases(): \Generator
+    {
+        yield [
+            '<?php $x = intval(...);',
+        ];
     }
 }

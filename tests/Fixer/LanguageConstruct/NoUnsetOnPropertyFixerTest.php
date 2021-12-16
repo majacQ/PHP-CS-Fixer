@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -25,18 +27,15 @@ final class NoUnsetOnPropertyFixerTest extends AbstractFixerTestCase
 {
     /**
      * @dataProvider provideFixCases
-     *
-     * @param string      $expected
-     * @param null|string $input
      */
-    public function testFix($expected, $input = null)
+    public function testFix(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFixCases()
+    public function provideFixCases(): \Generator
     {
-        $tests = [
+        yield from [
             'It replaces an unset on a property with  = null' => [
                 '<?php $foo->bar = null;',
                 '<?php unset($foo->bar);',
@@ -90,9 +89,9 @@ final class NoUnsetOnPropertyFixerTest extends AbstractFixerTestCase
 ',
             ],
             'It works with weirdly placed comments' => [
-                '<?php unset/*foo*/(/*bar*/$bar->foo[0]); self::$foo = null/*baz*/; /*ello*/\Test\Baz::$fooBar = null/*comment*/; unset($bar->foo[0]); $this->foo = null; unset($a); unset($b);
+                '<?php unset/*foo*/(/*bar*/$bar->foo[0]); self::$foo = null/*baz*/; /*hello*/\Test\Baz::$fooBar = null/*comment*/; unset($bar->foo[0]); $this->foo = null; unset($a); unset($b);
                 unset/*foo*/(/*bar*/$bar);',
-                '<?php unset/*foo*/(/*bar*/$bar->foo[0], self::$foo/*baz*/, /*ello*/\Test\Baz::$fooBar/*comment*/, $bar->foo[0], $this->foo, $a, $b);
+                '<?php unset/*foo*/(/*bar*/$bar->foo[0], self::$foo/*baz*/, /*hello*/\Test\Baz::$fooBar/*comment*/, $bar->foo[0], $this->foo, $a, $b);
                 unset/*foo*/(/*bar*/$bar);',
             ],
             'It does not mess with consecutive unsets' => [
@@ -109,31 +108,12 @@ final class NoUnsetOnPropertyFixerTest extends AbstractFixerTestCase
             ],
         ];
 
-        foreach ($tests as $index => $test) {
-            yield $index => $test;
-        }
-
         if (\PHP_VERSION_ID < 80000) {
             yield 'It does not replace unsets on arrays with special notation' => [
                 '<?php unset($bar->foo{0});',
             ];
         }
-    }
 
-    /**
-     * @param string      $expected
-     * @param null|string $input
-     *
-     * @dataProvider provideFix70Cases
-     * @requires PHP 7.0
-     */
-    public function testFix70($expected, $input = null)
-    {
-        $this->doTest($expected, $input);
-    }
-
-    public function provideFix70Cases()
-    {
         yield 'It does not break complex expressions' => [
             '<?php
                 unset(a()[b()["a"]]);
@@ -142,29 +122,36 @@ final class NoUnsetOnPropertyFixerTest extends AbstractFixerTestCase
                 unset(c($a)->a);
             ',
         ];
-
-        if (\PHP_VERSION_ID < 80000) {
-            yield 'It does not break curly access expressions' => [
-                '<?php unset(a(){"a"});',
-            ];
-        }
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
-     * @requires PHP 7.3
-     * @dataProvider provideFix73Cases
+     * @dataProvider provideFixPre80Cases
+     * @requires PHP <8.0
      */
-    public function testFix73($expected, $input = null)
+    public function testFixPre80(string $expected, string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFix73Cases()
+    public function provideFixPre80Cases(): \Generator
     {
-        $tests = [
+        yield 'It does not break curly access expressions' => [
+            '<?php unset(a(){"a"});',
+        ];
+    }
+
+    /**
+     * @requires PHP 7.3
+     * @dataProvider provideFix73Cases
+     */
+    public function testFix73(string $expected, ?string $input = null): void
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix73Cases(): \Generator
+    {
+        yield from [
             'It replaces an unset on a property with  = null' => [
                 '<?php $foo->bar = null;',
                 '<?php unset($foo->bar,);',
@@ -214,9 +201,9 @@ final class NoUnsetOnPropertyFixerTest extends AbstractFixerTestCase
 ',
             ],
             'It works with weirdly placed comments' => [
-                '<?php unset/*foo*/(/*bar*/$bar->foo[0]); self::$foo = null/*baz*/; /*ello*/\Test\Baz::$fooBar = null/*comment*/; unset($bar->foo[0]); $this->foo = null; unset($a); unset($b,);
+                '<?php unset/*foo*/(/*bar*/$bar->foo[0]); self::$foo = null/*baz*/; /*hello*/\Test\Baz::$fooBar = null/*comment*/; unset($bar->foo[0]); $this->foo = null; unset($a); unset($b,);
                 unset/*foo*/(/*bar*/$bar,);',
-                '<?php unset/*foo*/(/*bar*/$bar->foo[0], self::$foo/*baz*/, /*ello*/\Test\Baz::$fooBar/*comment*/, $bar->foo[0], $this->foo, $a, $b,);
+                '<?php unset/*foo*/(/*bar*/$bar->foo[0], self::$foo/*baz*/, /*hello*/\Test\Baz::$fooBar/*comment*/, $bar->foo[0], $this->foo, $a, $b,);
                 unset/*foo*/(/*bar*/$bar,);',
             ],
             'It does not mess with consecutive unsets' => [
@@ -244,10 +231,6 @@ final class NoUnsetOnPropertyFixerTest extends AbstractFixerTestCase
                 '<?php unset($foo->bar , );',
             ],
         ];
-
-        foreach ($tests as $index => $test) {
-            yield $index => $test;
-        }
 
         if (\PHP_VERSION_ID < 80000) {
             yield 'It does not replace unsets on arrays with special notation' => [

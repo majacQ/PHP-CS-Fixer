@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -29,16 +31,11 @@ use Symfony\Component\Yaml\Yaml;
  */
 final class CiConfigurationTest extends TestCase
 {
-    public function testTestJobsRunOnEachPhp()
+    public function testTestJobsRunOnEachPhp(): void
     {
         $supportedVersions = [];
         $supportedMinPhp = (float) $this->getMinPhpVersionFromEntryFile();
         $supportedMaxPhp = (float) $this->getMaxPhpVersionFromEntryFile();
-
-        if ($supportedMinPhp < 7) {
-            $supportedMinPhp = 7;
-            $supportedVersions[] = '5.6';
-        }
 
         if ($supportedMaxPhp >= 8) {
             $supportedVersions = array_merge(
@@ -62,11 +59,11 @@ final class CiConfigurationTest extends TestCase
         self::assertUpcomingPhpVersionIsCoveredByCiJob(end($supportedVersions), $ciVersions);
     }
 
-    public function testDeploymentJobsRunOnLatestStablePhpThatIsSupportedByTool()
+    public function testDeploymentJobsRunOnLatestStablePhpThatIsSupportedByTool(): void
     {
         $ciVersionsForDeployments = $this->getAllPhpVersionsUsedByCiForDeployments();
         $ciVersions = $this->getAllPhpVersionsUsedByCiForTests();
-        $expectedPhp = '7.4'; // can't run dev-tools on 8.0 yet; $this->getMaxPhpVersionFromEntryFile();
+        $expectedPhp = $this->getMaxPhpVersionFromEntryFile();
 
         if (\in_array($expectedPhp.'snapshot', $ciVersions, true)) {
             // last version of used PHP is snapshot. we should test against previous one, that is stable
@@ -84,7 +81,7 @@ final class CiConfigurationTest extends TestCase
         }
     }
 
-    private static function generateMinorVersionsRange($from, $to)
+    private static function generateMinorVersionsRange(float $from, float $to): array
     {
         $range = [];
 
@@ -95,16 +92,16 @@ final class CiConfigurationTest extends TestCase
         return $range;
     }
 
-    private static function ensureTraversableContainsIdenticalIsAvailable()
+    private static function ensureTraversableContainsIdenticalIsAvailable(): void
     {
         if (!class_exists(TraversableContainsIdentical::class)) {
             static::markTestSkipped('TraversableContainsIdentical not available.');
         }
     }
 
-    private static function assertUpcomingPhpVersionIsCoveredByCiJob($lastSupportedVersion, array $ciVersions)
+    private static function assertUpcomingPhpVersionIsCoveredByCiJob(string $lastSupportedVersion, array $ciVersions): void
     {
-        if ('8.0' === $lastSupportedVersion) {
+        if ('8.1' === $lastSupportedVersion) {
             return; // no further releases available yet
         }
 
@@ -118,11 +115,11 @@ final class CiConfigurationTest extends TestCase
             new TraversableContainsIdentical(sprintf('%.1fsnapshot', $lastSupportedVersion + 0.1)),
             // GitHub CI uses just versions, without suffix, e.g. 8.1 for 8.1snapshot as of writing
             new TraversableContainsIdentical(sprintf('%.1f', $lastSupportedVersion + 0.1)),
-            new TraversableContainsIdentical(sprintf('%.1f', round($lastSupportedVersion + 1)))
+            new TraversableContainsIdentical(sprintf('%.1f', round($lastSupportedVersion + 1.0)))
         ));
     }
 
-    private static function assertSupportedPhpVersionsAreCoveredByCiJobs(array $supportedVersions, array $ciVersions)
+    private static function assertSupportedPhpVersionsAreCoveredByCiJobs(array $supportedVersions, array $ciVersions): void
     {
         $lastSupportedVersion = array_pop($supportedVersions);
 
@@ -138,33 +135,39 @@ final class CiConfigurationTest extends TestCase
         ));
     }
 
-    private function getAllPhpVersionsUsedByCiForDeployments()
+    /**
+     * @return string[]
+     */
+    private function getAllPhpVersionsUsedByCiForDeployments(): array
     {
-        $jobs = array_filter($this->getGitHubJobs(), function ($job) {
+        $jobs = array_filter($this->getGitHubJobs(), static function (array $job): bool {
             return isset($job['execute-deployment']) && 'yes' === $job['execute-deployment'];
         });
 
-        return array_map(function ($job) {
+        return array_map(static function ($job): string {
             return \is_string($job['php-version']) ? $job['php-version'] : sprintf('%.1f', $job['php-version']);
         }, $jobs);
     }
 
-    private function getAllPhpVersionsUsedByCiForTests()
+    /**
+     * @return string[]
+     */
+    private function getAllPhpVersionsUsedByCiForTests(): array
     {
         return $this->getPhpVersionsUsedByGitHub();
     }
 
-    private function convertPhpVerIdToNiceVer($verId)
+    private function convertPhpVerIdToNiceVer(string $verId): string
     {
         $matchResult = Preg::match('/^(?<major>\d{1,2})(?<minor>\d{2})(?<patch>\d{2})$/', $verId, $capture);
         if (1 !== $matchResult) {
-            throw new \LogicException("Can't parse version id.");
+            throw new \LogicException(sprintf('Can\'t parse version "%s" id.', $verId));
         }
 
         return sprintf('%d.%d', $capture['major'], $capture['minor']);
     }
 
-    private function getMaxPhpVersionFromEntryFile()
+    private function getMaxPhpVersionFromEntryFile(): string
     {
         $tokens = Tokens::fromCode(file_get_contents(__DIR__.'/../../php-cs-fixer'));
         $sequence = $tokens->findSequence([
@@ -182,7 +185,7 @@ final class CiConfigurationTest extends TestCase
         return $this->convertPhpVerIdToNiceVer((string) ($phpVerId - 100));
     }
 
-    private function getMinPhpVersionFromEntryFile()
+    private function getMinPhpVersionFromEntryFile(): string
     {
         $tokens = Tokens::fromCode(file_get_contents(__DIR__.'/../../php-cs-fixer'));
         $sequence = $tokens->findSequence([
@@ -200,18 +203,21 @@ final class CiConfigurationTest extends TestCase
         return $this->convertPhpVerIdToNiceVer($phpVerId);
     }
 
-    private function getGitHubJobs()
+    private function getGitHubJobs(): array
     {
         $yaml = Yaml::parse(file_get_contents(__DIR__.'/../../.github/workflows/ci.yml'));
 
         return $yaml['jobs']['tests']['strategy']['matrix']['include'];
     }
 
-    private function getPhpVersionsUsedByGitHub()
+    /**
+     * @return string[]
+     */
+    private function getPhpVersionsUsedByGitHub(): array
     {
         $yaml = Yaml::parse(file_get_contents(__DIR__.'/../../.github/workflows/ci.yml'));
 
-        $phpVersions = isset($yaml['jobs']['tests']['strategy']['matrix']['php-version']) ? $yaml['jobs']['tests']['strategy']['matrix']['php-version'] : [];
+        $phpVersions = $yaml['jobs']['tests']['strategy']['matrix']['php-version'] ?? [];
 
         foreach ($yaml['jobs']['tests']['strategy']['matrix']['include'] as $job) {
             $phpVersions[] = $job['php-version'];

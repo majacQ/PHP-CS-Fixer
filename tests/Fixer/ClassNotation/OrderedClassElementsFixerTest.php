@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -12,6 +14,8 @@
 
 namespace PhpCsFixer\Tests\Fixer\ClassNotation;
 
+use PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException;
+use PhpCsFixer\Fixer\ClassNotation\OrderedClassElementsFixer;
 use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 
 /**
@@ -24,17 +28,14 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 final class OrderedClassElementsFixerTest extends AbstractFixerTestCase
 {
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixCases
      */
-    public function testFix($expected, $input = null)
+    public function testFix(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFixCases()
+    public function provideFixCases(): array
     {
         return [
             [
@@ -141,17 +142,17 @@ abstract class Foo extends FooParent implements FooInterface1, FooInterface2
 
     public static function setUpBeforeClass() {}
 
-    public static function teardownafterclass() {
+    public static function tearDownAfterclass() {
     } /* multiline
     comment */
 
     protected function setUp() {}
 
-    protected function doSetUp() {}
+    protected function assertPreConditions() {}
+
+    protected function assertPostConditions() {}
 
     protected function tearDown() {}
-
-    protected function doTearDown() {}
 
     abstract public function foo1($a, $b = 1);
 
@@ -198,11 +199,9 @@ abstract class Foo extends FooParent implements FooInterface1, FooInterface2
 
     abstract public function foo1($a, $b = 1);
 
+    protected function setUp() {}
+
     protected function tearDown() {}
-
-    protected function doSetUp() {}
-
-    protected function doTearDown() {}
 
     public function __clone() {}
 
@@ -234,19 +233,21 @@ abstract class Foo extends FooParent implements FooInterface1, FooInterface2
 
     const C2 = 2;
 
-    public static function teardownafterclass() {
+    public static function tearDownAfterclass() {
     } /* multiline
     comment */
+
+    protected function assertPostConditions() {}
 
     use Baz {
         abc as private;
     }
 
+    protected function assertPreConditions() {}
+
     private function foo5()
     {
     } // end foo5
-
-    protected function setUp() {}
 
     protected function __construct()
     {
@@ -373,105 +374,15 @@ EOT
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
-     * @dataProvider provideFix71Cases
-     * @requires PHP 7.1
-     */
-    public function testFix71(array $configuration, $expected, $input = null)
-    {
-        $this->fixer->configure($configuration);
-        $this->doTest($expected, $input);
-    }
-
-    public function provideFix71Cases()
-    {
-        return [
-            [
-                [],
-                <<<'EOT'
-<?php
-
-class Foo
-{
-    const C2 = 2;
-    public const C1 = 1;
-    public const C3 = 3;
-    protected const C4 = 4;
-    private const C5 = 5;
-}
-EOT
-                , <<<'EOT'
-<?php
-
-class Foo
-{
-    private const C5 = 5;
-    const C2 = 2;
-    public const C1 = 1;
-    protected const C4 = 4;
-    public const C3 = 3;
-}
-EOT
-            ],
-            [
-                ['sort_algorithm' => 'alpha'],
-                <<<'EOT'
-<?php
-
-class Foo
-{
-    public const C1 = 1;
-    const C2 = 2;
-    public const C3 = 3;
-    protected const C4 = 4;
-    private const C5 = 5;
-}
-EOT
-                , <<<'EOT'
-<?php
-
-class Foo
-{
-    private const C5 = 5;
-    const C2 = 2;
-    public const C1 = 1;
-    protected const C4 = 4;
-    public const C3 = 3;
-}
-EOT
-            ],
-        ];
-    }
-
-    /**
-     * @param string $input
-     * @param string $expected
-     *
-     * @group legacy
-     * @dataProvider provideConfigurationCases
-     * @expectedDeprecation Passing "order" at the root of the configuration for rule "ordered_class_elements" is deprecated and will not be supported in 3.0, use "order" => array(...) option instead.
-     */
-    public function testLegacyFixWithConfiguration(array $configuration, $expected, $input)
-    {
-        $this->fixer->configure($configuration);
-        $this->doTest($expected, $input);
-    }
-
-    /**
-     * @param string $input
-     * @param string $expected
-     *
      * @dataProvider provideConfigurationCases
      */
-    public function testFixWithConfiguration(array $configuration, $expected, $input)
+    public function testFixWithConfiguration(array $configuration, string $expected, string $input): void
     {
         $this->fixer->configure(['order' => $configuration]);
         $this->doTest($expected, $input);
     }
 
-    public function provideConfigurationCases()
+    public function provideConfigurationCases(): array
     {
         return [
             [
@@ -994,18 +905,15 @@ EOT
     }
 
     /**
-     * @param string $input
-     * @param string $expected
-     *
      * @dataProvider provideSortingConfigurationCases
      */
-    public function testFixWithSortingAlgorithm(array $configuration, $expected, $input)
+    public function testFixWithSortingAlgorithm(array $configuration, string $expected, string $input): void
     {
         $this->fixer->configure($configuration);
         $this->doTest($expected, $input);
     }
 
-    public function provideSortingConfigurationCases()
+    public function provideSortingConfigurationCases(): array
     {
         return [
             [
@@ -1015,7 +923,7 @@ EOT
                         'method_public',
                         'method_private',
                     ],
-                    'sort_algorithm' => 'alpha',
+                    'sort_algorithm' => OrderedClassElementsFixer::SORT_ALPHA,
                 ],
                 <<<'EOT'
 <?php
@@ -1071,7 +979,7 @@ EOT
                         'method_protected',
                         'method_private',
                     ],
-                    'sort_algorithm' => 'alpha',
+                    'sort_algorithm' => OrderedClassElementsFixer::SORT_ALPHA,
                 ],
                 <<<'EOT'
 <?php
@@ -1181,7 +1089,7 @@ EOT
                         'method_protected_abstract',
                         'method_private',
                     ],
-                    'sort_algorithm' => 'alpha',
+                    'sort_algorithm' => OrderedClassElementsFixer::SORT_ALPHA,
                 ],
                 <<<'EOT'
 <?php
@@ -1274,17 +1182,68 @@ abstract class Foo
 EOT
                 ,
             ],
+            [
+                [],
+                <<<'EOT'
+<?php
+
+class Foo
+{
+    const C2 = 2;
+    public const C1 = 1;
+    public const C3 = 3;
+    protected const C4 = 4;
+    private const C5 = 5;
+}
+EOT
+                , <<<'EOT'
+<?php
+
+class Foo
+{
+    private const C5 = 5;
+    const C2 = 2;
+    public const C1 = 1;
+    protected const C4 = 4;
+    public const C3 = 3;
+}
+EOT
+            ],
+            [
+                ['sort_algorithm' => OrderedClassElementsFixer::SORT_ALPHA],
+                <<<'EOT'
+<?php
+
+class Foo
+{
+    public const C1 = 1;
+    const C2 = 2;
+    public const C3b = 3;
+    protected const C4a = 4;
+    private const C5 = 5;
+}
+EOT
+                , <<<'EOT'
+<?php
+
+class Foo
+{
+    private const C5 = 5;
+    const C2 = 2;
+    public const C1 = 1;
+    protected const C4a = 4;
+    public const C3b = 3;
+}
+EOT
+            ],
         ];
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFix74Cases
      * @requires PHP 7.4
      */
-    public function testFix74($expected, $input = null, array $configuration = null)
+    public function testFix74(string $expected, ?string $input = null, ?array $configuration = null): void
     {
         if (null !== $configuration) {
             $this->fixer->configure($configuration);
@@ -1293,7 +1252,7 @@ EOT
         $this->doTest($expected, $input);
     }
 
-    public function provideFix74Cases()
+    public function provideFix74Cases(): \Generator
     {
         yield [
             '<?php
@@ -1327,26 +1286,23 @@ EOT
                 public ?int $foo;
             }',
             [
-                'sort_algorithm' => 'alpha',
+                'sort_algorithm' => OrderedClassElementsFixer::SORT_ALPHA,
             ],
         ];
     }
 
-    public function testWrongConfig()
+    public function testWrongConfig(): void
     {
-        $this->expectException(\PhpCsFixer\ConfigurationException\InvalidFixerConfigurationException::class);
+        $this->expectException(InvalidFixerConfigurationException::class);
         $this->expectExceptionMessageMatches('/^\[ordered_class_elements\] Invalid configuration: The option "order" .*\.$/');
 
         $this->fixer->configure(['order' => ['foo']]);
     }
 
     /**
-     * @param string $methodName1
-     * @param string $methodName2
-     *
      * @dataProvider provideWithConfigWithNoCandidateCases
      */
-    public function testWithConfigWithNoCandidate($methodName1, $methodName2)
+    public function testWithConfigWithNoCandidate(string $methodName1, string $methodName2): void
     {
         $template = '<?php
 class TestClass
@@ -1354,7 +1310,7 @@ class TestClass
     public function %s(){}
     public function %s(){}
 }';
-        $this->fixer->configure(['order' => ['use_trait'], 'sort_algorithm' => 'alpha']);
+        $this->fixer->configure(['order' => ['use_trait'], 'sort_algorithm' => OrderedClassElementsFixer::SORT_ALPHA]);
 
         $this->doTest(
             sprintf($template, $methodName2, $methodName1),
@@ -1362,7 +1318,7 @@ class TestClass
         );
     }
 
-    public function provideWithConfigWithNoCandidateCases()
+    public function provideWithConfigWithNoCandidateCases(): \Generator
     {
         yield ['z', '__construct'];
         yield ['z', '__destruct'];
@@ -1371,18 +1327,15 @@ class TestClass
     }
 
     /**
-     * @param string $expected
-     * @param string $input
-     *
      * @dataProvider provideFix80Cases
      * @requires PHP 8.0
      */
-    public function testFix80($expected, $input)
+    public function testFix80(string $expected, string $input): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFix80Cases()
+    public function provideFix80Cases(): \Generator
     {
         yield [
             '<?php class Foo
@@ -1419,6 +1372,52 @@ class TestClass
                 {
                 }
             }',
+        ];
+    }
+
+    /**
+     * @dataProvider provideFix81Cases
+     * @requires PHP 8.1
+     */
+    public function testFix81(string $expected, ?string $input = null, ?array $configuration = null): void
+    {
+        if (null !== $configuration) {
+            $this->fixer->configure($configuration);
+        }
+
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix81Cases(): \Generator
+    {
+        yield [
+            '<?php
+
+class A
+{
+    readonly public string $publicProp0;
+    public readonly string $publicProp1;
+    public string $pubProp2;
+    protected readonly string $protectedProp0;
+    readonly protected string $protectedProp1;
+    readonly private string $privateProp0;
+    private readonly string $privateProp1;
+}
+',
+            '<?php
+
+class A
+{
+    public string $pubProp2;
+    readonly public string $publicProp0;
+    public readonly string $publicProp1;
+    private readonly string $privateProp1;
+    readonly private string $privateProp0;
+    protected readonly string $protectedProp0;
+    readonly protected string $protectedProp1;
+}
+',
+            ['order' => ['property_public_readonly', 'property_public', 'property_protected_readonly', 'property_private_readonly'], 'sort_algorithm' => 'alpha'],
         ];
     }
 }

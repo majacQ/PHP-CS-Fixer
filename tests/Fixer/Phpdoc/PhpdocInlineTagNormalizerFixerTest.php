@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -22,12 +24,9 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 final class PhpdocInlineTagNormalizerFixerTest extends AbstractFixerTestCase
 {
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixCases
      */
-    public function testFix($expected, $input = null, array $configuration = null)
+    public function testFix(string $expected, ?string $input = null, ?array $configuration = null): void
     {
         if (null !== $configuration) {
             $this->fixer->configure($configuration);
@@ -36,7 +35,7 @@ final class PhpdocInlineTagNormalizerFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public function provideFixCases()
+    public function provideFixCases(): array
     {
         $cases = [
             [
@@ -52,7 +51,7 @@ final class PhpdocInlineTagNormalizerFixerTest extends AbstractFixerTestCase
      * {@inheritdoc foo bar.} d
      * {@inheritdoc foo bar.} e
      * {@inheritdoc test} f
-     * end comment {@inheritdoc here we are done} @spacepossum {1}
+     * end comment {@inheritdoc here we are done} @foo {1}
      */
 ',
                 '<?php
@@ -67,7 +66,7 @@ final class PhpdocInlineTagNormalizerFixerTest extends AbstractFixerTestCase
      * { @inheritdoc 	foo bar.  } d
      * {@ 	inheritdoc foo bar.	} e
      * @{{inheritdoc test}} f
-     * end comment {@inheritdoc here we are done} @spacepossum {1}
+     * end comment {@inheritdoc here we are done} @foo {1}
      */
 ',
             ],
@@ -154,7 +153,7 @@ final class PhpdocInlineTagNormalizerFixerTest extends AbstractFixerTestCase
         $cases[] = [
             '<?php
     /**
-     * {@link http://www.ietf.org/rfc/rfc1035.text)
+     * {@link https://symfony.com/rfc/rfc1035.text)
      */
     $someVar = "hello";',
         ];

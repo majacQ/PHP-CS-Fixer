@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -26,18 +28,15 @@ use PhpCsFixer\WhitespacesFixerConfig;
 final class PhpUnitExpectationFixerTest extends AbstractFixerTestCase
 {
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideTestFixCases
      */
-    public function testFix($expected, $input = null, array $config = [])
+    public function testFix(string $expected, ?string $input = null, array $config = []): void
     {
         $this->fixer->configure($config);
         $this->doTest($expected, $input);
     }
 
-    public function provideTestFixCases()
+    public function provideTestFixCases(): array
     {
         return [
             [
@@ -348,12 +347,9 @@ final class MyTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideMessyWhitespacesCases
      */
-    public function testMessyWhitespaces($expected, $input = null)
+    public function testMessyWhitespaces(string $expected, ?string $input = null): void
     {
         $expected = str_replace(['    ', "\n"], ["\t", "\r\n"], $expected);
         if (null !== $input) {
@@ -365,7 +361,7 @@ final class MyTest extends \PHPUnit_Framework_TestCase
         $this->doTest($expected, $input);
     }
 
-    public function provideMessyWhitespacesCases()
+    public function provideMessyWhitespacesCases(): array
     {
         $expectedTemplate =
 '
@@ -405,18 +401,15 @@ final class MyTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param string $expected
-     * @param string $input
-     *
      * @requires PHP 7.3
      * @dataProvider provideFix73Cases
      */
-    public function testFix73($expected, $input)
+    public function testFix73(string $expected, string $input): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFix73Cases()
+    public function provideFix73Cases(): array
     {
         return [
             [
@@ -468,5 +461,36 @@ final class MyTest extends \PHPUnit_Framework_TestCase
     }',
             ],
         ];
+    }
+
+    /**
+     * @requires PHP 8.0
+     */
+    public function testFix80(): void
+    {
+        $this->doTest(
+            '<?php
+    final class MyTest extends \PHPUnit_Framework_TestCase
+    {
+        function testFnc()
+        {
+            aaa();
+            $this?->expectException("RuntimeException");
+            $this->expectExceptionMessage("message");
+            $this->expectExceptionCode(123);
+            zzz();
+        }
+    }',
+            '<?php
+    final class MyTest extends \PHPUnit_Framework_TestCase
+    {
+        function testFnc()
+        {
+            aaa();
+            $this?->setExpectedException("RuntimeException", "message", 123);
+            zzz();
+        }
+    }'
+        );
     }
 }

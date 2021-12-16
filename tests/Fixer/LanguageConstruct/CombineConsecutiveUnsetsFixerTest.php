@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -15,8 +17,6 @@ namespace PhpCsFixer\Tests\Fixer\LanguageConstruct;
 use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 
 /**
- * @author SpacePossum
- *
  * @internal
  *
  * @covers \PhpCsFixer\Fixer\LanguageConstruct\CombineConsecutiveUnsetsFixer
@@ -24,19 +24,16 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 final class CombineConsecutiveUnsetsFixerTest extends AbstractFixerTestCase
 {
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixCases
      */
-    public function testFix($expected, $input = null)
+    public function testFix(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFixCases()
+    public function provideFixCases(): \Generator
     {
-        $tests = [
+        yield from [
             [
                 '<?php //1
                     unset($foo/*;*/, /*;*/$bar, $c , $foobar  ,  $foobar2);
@@ -131,15 +128,21 @@ final class CombineConsecutiveUnsetsFixerTest extends AbstractFixerTestCase
                 ',
             ],
         ];
+    }
 
-        foreach ($tests as $index => $test) {
-            yield $index => $test;
-        }
+    /**
+     * @dataProvider provideFixPre80Cases
+     * @requires PHP <8.0
+     */
+    public function testFixPre80(string $expected, string $input = null): void
+    {
+        $this->doTest($expected, $input);
+    }
 
-        if (\PHP_VERSION_ID < 80000) {
-            yield [
-                '<?php (unset)$f;',
-            ];
-        }
+    public function provideFixPre80Cases(): \Generator
+    {
+        yield [
+            '<?php (unset)$f;',
+        ];
     }
 }

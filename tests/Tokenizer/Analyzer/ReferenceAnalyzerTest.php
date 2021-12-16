@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -25,14 +27,14 @@ use PhpCsFixer\Tokenizer\Tokens;
  */
 final class ReferenceAnalyzerTest extends TestCase
 {
-    public function testNonAmpersand()
+    public function testNonAmpersand(): void
     {
         $analyzer = new ReferenceAnalyzer();
 
         static::assertFalse($analyzer->isReference(Tokens::fromCode('<?php $foo;$bar;$baz;'), 3));
     }
 
-    public function testReferenceAndNonReferenceTogether()
+    public function testReferenceAndNonReferenceTogether(): void
     {
         $analyzer = new ReferenceAnalyzer();
 
@@ -44,15 +46,13 @@ final class ReferenceAnalyzerTest extends TestCase
 
     /**
      * @dataProvider provideReferenceCases
-     *
-     * @param mixed $code
      */
-    public function testReference($code)
+    public function testReference(string $code): void
     {
         $this->doTestCode(true, $code);
     }
 
-    public static function provideReferenceCases()
+    public static function provideReferenceCases(): \Generator
     {
         yield ['<?php $foo =& $bar;'];
         yield ['<?php $foo =& find_var($bar);'];
@@ -74,23 +74,18 @@ class Foo {
         yield ['<?php function foo(string &$bar) {};'];
         yield ['<?php foreach($foos as &$foo) {}'];
         yield ['<?php foreach($foos as $key => &$foo) {}'];
-
-        if (PHP_VERSION >= 70100) {
-            yield ['<?php function foo(?int &$bar) {};'];
-        }
+        yield ['<?php function foo(?int &$bar) {};'];
     }
 
     /**
      * @dataProvider provideNonReferenceCases
-     *
-     * @param mixed $code
      */
-    public function testNonReference($code)
+    public function testNonReference(string $code): void
     {
         $this->doTestCode(false, $code);
     }
 
-    public static function provideNonReferenceCases()
+    public static function provideNonReferenceCases(): \Generator
     {
         yield ['<?php $foo & $bar;'];
         yield ['<?php FOO & $bar;'];
@@ -114,13 +109,10 @@ class Foo {
         yield ['<?php function foo(callable $bar = BAZ & QUX) {};'];
         yield ['<?php foreach($foos as $foo) { $foo & $bar; }'];
         yield ['<?php if ($foo instanceof Bar & 0b01010101) {}'];
-
-        if (PHP_VERSION >= 70100) {
-            yield ['<?php function foo(?int $bar = BAZ & QUX) {};'];
-        }
+        yield ['<?php function foo(?int $bar = BAZ & QUX) {};'];
     }
 
-    private function doTestCode($expected, $code)
+    private function doTestCode(bool $expected, string $code): void
     {
         $analyzer = new ReferenceAnalyzer();
 

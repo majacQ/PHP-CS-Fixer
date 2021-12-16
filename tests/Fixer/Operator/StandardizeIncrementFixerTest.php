@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -25,19 +27,16 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 final class StandardizeIncrementFixerTest extends AbstractFixerTestCase
 {
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixCases
      */
-    public function testFix($expected, $input = null)
+    public function testFix(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFixCases()
+    public function provideFixCases(): \Generator
     {
-        $tests = [
+        yield from [
             [
                 '<?php ++$i;',
                 '<?php $i += 1;',
@@ -555,97 +554,90 @@ $i#3
             ],
         ];
 
-        foreach ($tests as $index => $test) {
-            yield $index => $test;
-        }
+        yield [
+            '<?php $i -= 1 ?? 2;',
+        ];
 
-        if (\PHP_VERSION_ID < 80000) {
-            yield [
-                '<?php echo ++$foo->{$bar};',
-                '<?php echo $foo->{$bar} += 1;',
-            ];
+        yield [
+            '<?php $i += 1 ?? 2;',
+        ];
 
-            yield [
-                '<?php echo ++$foo->{$bar->{$baz}};',
-                '<?php echo $foo->{$bar->{$baz}} += 1;',
-            ];
+        yield [
+            '<?php $i -= 1 <=> 2;',
+        ];
 
-            yield [
-                '<?php ++$a{$b};',
-                '<?php $a{$b} += 1;',
-            ];
+        yield [
+            '<?php $i += 1 <=> 2;',
+        ];
 
-            yield [
-                '<?php --$a{$b};',
-                '<?php $a{$b} -= 1;',
-            ];
-        }
-    }
+        yield [
+            '<?php ++$a::$b::$c;',
+            '<?php $a::$b::$c += 1;',
+        ];
 
-    /**
-     * @param string      $expected
-     * @param null|string $input
-     *
-     * @dataProvider provideFix70Cases
-     * @requires PHP 7.0
-     */
-    public function testFix70($expected, $input = null)
-    {
-        $this->doTest($expected, $input);
-    }
+        yield [
+            '<?php ++$a->$b::$c;',
+            '<?php $a->$b::$c += 1;',
+        ];
 
-    public function provideFix70Cases()
-    {
-        return [
-            [
-                '<?php $i -= 1 ?? 2;',
-            ],
-            [
-                '<?php $i += 1 ?? 2;',
-            ],
-            [
-                '<?php $i -= 1 <=> 2;',
-            ],
-            [
-                '<?php $i += 1 <=> 2;',
-            ],
-            [
-                '<?php ++$a::$b::$c;',
-                '<?php $a::$b::$c += 1;',
-            ],
-            [
-                '<?php ++$a->$b::$c;',
-                '<?php $a->$b::$c += 1;',
-            ],
-            [
-                '<?php ++$a::${$b}::$c;',
-                '<?php $a::${$b}::$c += 1;',
-            ],
-            [
-                '<?php ++$a->$b::$c->${$d}->${$e}::f(1 + 2 * 3)->$g::$h;',
-                '<?php $a->$b::$c->${$d}->${$e}::f(1 + 2 * 3)->$g::$h += 1;',
-            ],
+        yield [
+            '<?php ++$a::${$b}::$c;',
+            '<?php $a::${$b}::$c += 1;',
+        ];
+
+        yield [
+            '<?php ++$a->$b::$c->${$d}->${$e}::f(1 + 2 * 3)->$g::$h;',
+            '<?php $a->$b::$c->${$d}->${$e}::f(1 + 2 * 3)->$g::$h += 1;',
         ];
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFix74Cases
      * @requires PHP 7.4
      */
-    public function testFix74($expected, $input = null)
+    public function testFix74(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFix74Cases()
+    public function provideFix74Cases(): array
     {
         return [
             [
                 '<?php $i += 1_0;',
             ],
+        ];
+    }
+
+    /**
+     * @dataProvider provideFixPre80Cases
+     * @requires PHP <8.0
+     */
+    public function testFixPre80(string $expected, string $input = null): void
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFixPre80Cases(): \Generator
+    {
+        yield [
+            '<?php echo ++$foo->{$bar};',
+            '<?php echo $foo->{$bar} += 1;',
+        ];
+
+        yield [
+            '<?php echo ++$foo->{$bar->{$baz}};',
+            '<?php echo $foo->{$bar->{$baz}} += 1;',
+        ];
+
+        yield [
+            '<?php ++$a{$b};',
+            '<?php $a{$b} += 1;',
+        ];
+
+        yield [
+            '<?php --$a{$b};',
+            '<?php $a{$b} -= 1;',
         ];
     }
 }

@@ -15,7 +15,7 @@ The tags that should be aligned.
 
 Allowed values: a subset of ``['param', 'property', 'property-read', 'property-write', 'return', 'throws', 'type', 'var', 'method']``
 
-Default value: ``['param', 'return', 'throws', 'type', 'var']``
+Default value: ``['method', 'param', 'property', 'return', 'throws', 'type', 'var']``
 
 ``align``
 ~~~~~~~~~
@@ -38,7 +38,6 @@ Example #1
 
    --- Original
    +++ New
-   @@ -1,8 +1,8 @@
     <?php
     /**
    - * @param  EngineInterface $templating
@@ -62,7 +61,6 @@ With configuration: ``['align' => 'vertical']``.
 
    --- Original
    +++ New
-   @@ -1,8 +1,8 @@
     <?php
     /**
    - * @param  EngineInterface $templating
@@ -86,7 +84,6 @@ With configuration: ``['align' => 'left']``.
 
    --- Original
    +++ New
-   @@ -1,8 +1,8 @@
     <?php
     /**
    - * @param  EngineInterface $templating
@@ -107,11 +104,7 @@ Rule sets
 The rule is part of the following rule sets:
 
 @PhpCsFixer
-  Using the `@PhpCsFixer <./../../ruleSets/PhpCsFixer.rst>`_ rule set will enable the ``phpdoc_align`` rule with the config below:
-
-  ``['tags' => ['method', 'param', 'property', 'return', 'throws', 'type', 'var']]``
+  Using the `@PhpCsFixer <./../../ruleSets/PhpCsFixer.rst>`_ rule set will enable the ``phpdoc_align`` rule with the default config.
 
 @Symfony
-  Using the `@Symfony <./../../ruleSets/Symfony.rst>`_ rule set will enable the ``phpdoc_align`` rule with the config below:
-
-  ``['tags' => ['method', 'param', 'property', 'return', 'throws', 'type', 'var']]``
+  Using the `@Symfony <./../../ruleSets/Symfony.rst>`_ rule set will enable the ``phpdoc_align`` rule with the default config.

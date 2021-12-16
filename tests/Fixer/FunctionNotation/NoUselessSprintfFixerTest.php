@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -23,16 +25,13 @@ final class NoUselessSprintfFixerTest extends AbstractFixerTestCase
 {
     /**
      * @dataProvider provideFixCases
-     *
-     * @param string      $expected
-     * @param null|string $input
      */
-    public function testFix($expected, $input = null)
+    public function testFix(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFixCases()
+    public function provideFixCases(): \Generator
     {
         yield 'simple' => [
             '<?php echo "bar";',
@@ -97,29 +96,46 @@ final class NoUselessSprintfFixerTest extends AbstractFixerTestCase
             ',
         ];
 
-        if (\PHP_VERSION_ID >= 70000) {
-            yield [
-                '<?php echo sprint[2]("foo");
-            ',
-            ];
-        }
+        yield [
+            '<?php echo sprint[2]("foo");',
+        ];
+    }
 
-        if (\PHP_VERSION_ID > 70300) {
-            yield 'trailing comma' => [
-                '<?php echo "bar";',
-                '<?php echo sprintf("bar",);',
-            ];
-        }
+    /**
+     * @dataProvider provideFix73Cases
+     * @requires PHP 7.3
+     */
+    public function testFix73(string $expected, ?string $input = null): void
+    {
+        $this->doTest($expected, $input);
+    }
 
-        if (\PHP_VERSION_ID < 80000) {
-            yield [
-                '<?php echo  "bar";',
-                '<?php echo \ sprintf("bar");',
-            ];
+    public function provideFix73Cases(): \Generator
+    {
+        yield 'trailing comma' => [
+            '<?php echo "bar";',
+            '<?php echo sprintf("bar",);',
+        ];
+    }
 
-            yield [
-                '<?php echo A /* 1 */ \ B \ sprintf("bar");',
-            ];
-        }
+    /**
+     * @dataProvider provideFixPre80Cases
+     * @requires PHP <8.0
+     */
+    public function testFixPre80(string $expected, string $input = null): void
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFixPre80Cases(): \Generator
+    {
+        yield [
+            '<?php echo  "bar";',
+            '<?php echo \ sprintf("bar");',
+        ];
+
+        yield [
+            '<?php echo A /* 1 */ \ B \ sprintf("bar");',
+        ];
     }
 }

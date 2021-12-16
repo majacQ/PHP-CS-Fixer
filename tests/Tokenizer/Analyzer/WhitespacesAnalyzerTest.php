@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -24,20 +26,16 @@ use PhpCsFixer\Tokenizer\Tokens;
 final class WhitespacesAnalyzerTest extends TestCase
 {
     /**
-     * @param string $code
-     * @param string $indent
-     * @param int    $index
-     *
      * @dataProvider provideIndentCases
      */
-    public function testIndent($code, $indent, $index)
+    public function testIndent(string $code, string $indent, int $index): void
     {
         $tokens = Tokens::fromCode($code);
 
         static::assertSame($indent, WhitespacesAnalyzer::detectIndent($tokens, $index));
     }
 
-    public function provideIndentCases()
+    public function provideIndentCases(): \Generator
     {
         yield ['<?php function foo() { return true; }', '', 10];
 

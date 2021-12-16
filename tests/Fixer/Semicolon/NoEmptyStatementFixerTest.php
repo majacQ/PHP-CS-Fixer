@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -15,7 +17,6 @@ namespace PhpCsFixer\Tests\Fixer\Semicolon;
 use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 
 /**
- * @author SpacePossum
  * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
  *
  * @internal
@@ -25,19 +26,16 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 final class NoEmptyStatementFixerTest extends AbstractFixerTestCase
 {
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideNoEmptyStatementsCases
      */
-    public function testNoEmptyStatements($expected, $input = null)
+    public function testNoEmptyStatements(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideNoEmptyStatementsCases()
+    public function provideNoEmptyStatementsCases(): \Generator
     {
-        $tests = [
+        yield from [
             [
                 '<?php
                 abstract class TestClass0 extends Test IMPLEMENTS TestInterface, TestInterface2
@@ -390,10 +388,6 @@ final class NoEmptyStatementFixerTest extends AbstractFixerTestCase
             ],
         ];
 
-        foreach ($tests as $index => $test) {
-            yield $index => $test;
-        }
-
         foreach (['break', 'continue'] as $ops) {
             yield [
                 sprintf('<?php while(true) {%s ;}', $ops),
@@ -432,18 +426,14 @@ final class NoEmptyStatementFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
-     * @dataProvider providePHP7Cases
-     * @requires PHP 7.0
+     * @dataProvider provideFixCases
      */
-    public function testFixPHP7($expected, $input = null)
+    public function testFix(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function providePHP7Cases()
+    public function provideFixCases(): array
     {
         return [
             [
@@ -527,12 +517,9 @@ final class NoEmptyStatementFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideCasesWithShortOpenTagCases
      */
-    public function testCasesWithShortOpenTag($expected, $input = null)
+    public function testCasesWithShortOpenTag(string $expected, ?string $input = null): void
     {
         if (!ini_get('short_open_tag')) {
             static::markTestSkipped('No short tag tests possible.');
@@ -541,7 +528,7 @@ final class NoEmptyStatementFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public function provideCasesWithShortOpenTagCases()
+    public function provideCasesWithShortOpenTagCases(): array
     {
         return [
             [
@@ -552,17 +539,14 @@ final class NoEmptyStatementFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixMultipleSemicolonsCases
      */
-    public function testFixMultipleSemicolons($expected, $input = null)
+    public function testFixMultipleSemicolons(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFixMultipleSemicolonsCases()
+    public function provideFixMultipleSemicolonsCases(): array
     {
         return [
             [

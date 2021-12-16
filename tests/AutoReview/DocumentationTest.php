@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -12,8 +14,11 @@
 
 namespace PhpCsFixer\Tests\AutoReview;
 
-use PhpCsFixer\Documentation\DocumentationGenerator;
-use PhpCsFixer\Fixer\DefinedFixerInterface;
+use PhpCsFixer\Documentation\DocumentationLocator;
+use PhpCsFixer\Documentation\FixerDocumentGenerator;
+use PhpCsFixer\Documentation\ListDocumentGenerator;
+use PhpCsFixer\Documentation\RuleSetDocumentationGenerator;
+use PhpCsFixer\Fixer\FixerInterface;
 use PhpCsFixer\FixerFactory;
 use PhpCsFixer\RuleSet\RuleSets;
 use PHPUnit\Framework\TestCase;
@@ -22,9 +27,13 @@ use Symfony\Component\Finder\Finder;
 /**
  * @internal
  *
- * @coversNothing
+ * @covers \PhpCsFixer\Documentation\DocumentationLocator
+ * @covers \PhpCsFixer\Documentation\FixerDocumentGenerator
+ * @covers \PhpCsFixer\Documentation\ListDocumentGenerator
+ * @covers \PhpCsFixer\Documentation\RstUtils
+ * @covers \PhpCsFixer\Documentation\RuleSetDocumentationGenerator
+ *
  * @group auto-review
- * @group covers-nothing
  * @requires PHP 7.3
  */
 final class DocumentationTest extends TestCase
@@ -32,11 +41,12 @@ final class DocumentationTest extends TestCase
     /**
      * @dataProvider provideFixerCases
      */
-    public function testFixerDocumentationFileIsUpToDate(DefinedFixerInterface $fixer)
+    public function testFixerDocumentationFileIsUpToDate(FixerInterface $fixer): void
     {
-        $generator = new DocumentationGenerator();
+        $locator = new DocumentationLocator();
+        $generator = new FixerDocumentGenerator($locator);
 
-        $path = $generator->getFixerDocumentationFilePath($fixer);
+        $path = $locator->getFixerDocumentationFilePath($fixer);
 
         static::assertFileExists($path);
 
@@ -65,7 +75,7 @@ final class DocumentationTest extends TestCase
                     |$
                 )
             /x',
-            function (array $matches) use ($actual) {
+            static function (array $matches) use ($actual): string {
                 $before = preg_quote($matches['before'], '/');
                 $after = preg_quote($matches['after'], '/');
 
@@ -83,33 +93,27 @@ final class DocumentationTest extends TestCase
         static::assertSame($expected, $actual);
     }
 
-    public function provideFixerCases()
+    public function provideFixerCases(): \Generator
     {
-        $cases = [];
-
         foreach ($this->getFixers() as $fixer) {
-            $cases[$fixer->getName()] = [$fixer];
+            yield $fixer->getName() => [$fixer];
         }
-
-        return $cases;
     }
 
-    public function testFixersDocumentationIndexFileIsUpToDate()
+    public function testFixersDocumentationIndexFileIsUpToDate(): void
     {
-        $generator = new DocumentationGenerator();
+        $locator = new DocumentationLocator();
+        $generator = new FixerDocumentGenerator($locator);
 
         self::assertFileEqualsString(
             $generator->generateFixersDocumentationIndex($this->getFixers()),
-            $generator->getFixersDocumentationIndexFilePath()
+            $locator->getFixersDocumentationIndexFilePath()
         );
     }
 
-    /**
-     * @requires PHP 7.4
-     */
-    public function testFixersDocumentationDirectoryHasNoExtraFiles()
+    public function testFixersDocumentationDirectoryHasNoExtraFiles(): void
     {
-        $generator = new DocumentationGenerator();
+        $generator = new DocumentationLocator();
 
         static::assertCount(
             \count($this->getFixers()) + 1,
@@ -120,14 +124,16 @@ final class DocumentationTest extends TestCase
     /**
      * @requires PHP 7.4
      */
-    public function testRuleSetsDocumentationIsUpToDate()
+    public function testRuleSetsDocumentationIsUpToDate(): void
     {
+        $locator = new DocumentationLocator();
+        $generator = new RuleSetDocumentationGenerator($locator);
+
         $fixers = $this->getFixers();
-        $generator = new DocumentationGenerator();
         $paths = [];
 
         foreach (RuleSets::getSetDefinitions() as $name => $definition) {
-            $paths[$name] = $path = $generator->getRuleSetsDocumentationFilePath($name);
+            $paths[$name] = $path = $locator->getRuleSetsDocumentationFilePath($name);
 
             static::assertFileEqualsString(
                 $generator->generateRuleSetsDocumentation($definition, $fixers),
@@ -136,7 +142,7 @@ final class DocumentationTest extends TestCase
             );
         }
 
-        $indexFilePath = $generator->getRuleSetsDocumentationIndexFilePath();
+        $indexFilePath = $locator->getRuleSetsDocumentationIndexFilePath();
 
         static::assertFileEqualsString(
             $generator->generateRuleSetsDocumentationIndex($paths),
@@ -148,9 +154,9 @@ final class DocumentationTest extends TestCase
     /**
      * @requires PHP 7.4
      */
-    public function testRuleSetsDocumentationDirectoryHasNoExtraFiles()
+    public function testRuleSetsDocumentationDirectoryHasNoExtraFiles(): void
     {
-        $generator = new DocumentationGenerator();
+        $generator = new DocumentationLocator();
 
         static::assertCount(
             \count(RuleSets::getSetDefinitions()) + 1,
@@ -158,13 +164,48 @@ final class DocumentationTest extends TestCase
         );
     }
 
-    private static function assertFileEqualsString($expectedString, $actualFilePath, $message = '')
+    public function testInstallationDocHasCorrectMinimumVersion(): void
+    {
+        $composerJsonContent = file_get_contents(__DIR__.'/../../composer.json');
+        $composerJson = json_decode($composerJsonContent, true);
+        $phpVersion = $composerJson['require']['php'];
+        $minimumVersion = ltrim(substr($phpVersion, 0, strpos($phpVersion, ' ')), '^');
+
+        $minimumVersionInformation = sprintf('PHP needs to be a minimum version of PHP %s.', $minimumVersion);
+        $installationDocPath = realpath(__DIR__.'/../../doc/installation.rst');
+
+        static::assertStringContainsString(
+            $minimumVersionInformation,
+            file_get_contents($installationDocPath),
+            sprintf('Files %s needs to contain information "%s"', $installationDocPath, $minimumVersionInformation)
+        );
+    }
+
+    /**
+     * @requires PHP 7.4
+     */
+    public function testListingDocumentationIsUpToDate(): void
+    {
+        $locator = new DocumentationLocator();
+        $generator = new ListDocumentGenerator($locator);
+
+        $fixers = $this->getFixers();
+        $listingFilePath = $locator->getListingFilePath();
+
+        static::assertFileEqualsString(
+            $generator->generateListingDocumentation($fixers),
+            $listingFilePath,
+            sprintf('Listing documentation is generated (please CONTRIBUTING.md), file "%s".', $listingFilePath)
+        );
+    }
+
+    private static function assertFileEqualsString(string $expectedString, string $actualFilePath, string $message = ''): void
     {
         static::assertFileExists($actualFilePath, $message);
         static::assertSame($expectedString, file_get_contents($actualFilePath), $message);
     }
 
-    private function getFixers()
+    private function getFixers(): array
     {
         $factory = new FixerFactory();
         $factory->registerBuiltInFixers();

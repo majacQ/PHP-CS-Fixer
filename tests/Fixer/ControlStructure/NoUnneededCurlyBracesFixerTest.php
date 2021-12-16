@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -15,8 +17,6 @@ namespace PhpCsFixer\Tests\Fixer\ControlStructure;
 use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 
 /**
- * @author SpacePossum
- *
  * @internal
  *
  * @covers \PhpCsFixer\Fixer\ControlStructure\NoUnneededCurlyBracesFixer
@@ -24,19 +24,16 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 final class NoUnneededCurlyBracesFixerTest extends AbstractFixerTestCase
 {
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixCases
      */
-    public function testFix($expected, $input = null)
+    public function testFix(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFixCases()
+    public function provideFixCases(): \Generator
     {
-        $tests = [
+        yield from [
             'simple sample, last token candidate' => [
                 '<?php  echo 1;',
                 '<?php { echo 1;}',
@@ -113,34 +110,38 @@ final class NoUnneededCurlyBracesFixerTest extends AbstractFixerTestCase
                 ',
             ],
         ];
+    }
 
-        foreach ($tests as $index => $test) {
-            yield $index => $test;
-        }
+    /**
+     * @dataProvider provideFixPre80Cases
+     * @requires PHP <8.0
+     */
+    public function testFixPre80(string $expected, string $input = null): void
+    {
+        $this->doTest($expected, $input);
+    }
 
-        if (\PHP_VERSION_ID < 80000) {
-            yield 'no fixes, offset access syntax with curly braces' => [
-                '<?php
+    public function provideFixPre80Cases(): \Generator
+    {
+        yield 'no fixes, offset access syntax with curly braces' => [
+            '<?php
                     echo ${$a};
                     echo $a{1};
                 ',
-            ];
-        }
+        ];
     }
 
     /**
      * @requires PHP 7
      *
-     * @param string $expected
-     *
      * @dataProvider provideNoFix7Cases
      */
-    public function testNoFix7($expected)
+    public function testNoFix7(string $expected): void
     {
         $this->doTest($expected);
     }
 
-    public function provideNoFix7Cases()
+    public function provideNoFix7Cases(): array
     {
         return [
             [
@@ -161,18 +162,15 @@ final class NoUnneededCurlyBracesFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixNamespaceCases
      */
-    public function testFixNamespace($expected, $input = null)
+    public function testFixNamespace(string $expected, ?string $input = null): void
     {
         $this->fixer->configure(['namespaces' => true]);
         $this->doTest($expected, $input);
     }
 
-    public function provideFixNamespaceCases()
+    public function provideFixNamespaceCases(): \Generator
     {
         yield [
             '<?php

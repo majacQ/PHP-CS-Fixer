@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -14,6 +16,7 @@ namespace PhpCsFixer\Tests\Tokenizer\Analyzer\Analysis;
 
 use PhpCsFixer\Tests\TestCase;
 use PhpCsFixer\Tokenizer\Analyzer\Analysis\CaseAnalysis;
+use PhpCsFixer\Tokenizer\Analyzer\Analysis\DefaultAnalysis;
 use PhpCsFixer\Tokenizer\Analyzer\Analysis\SwitchAnalysis;
 
 /**
@@ -25,23 +28,28 @@ use PhpCsFixer\Tokenizer\Analyzer\Analysis\SwitchAnalysis;
  */
 final class SwitchAnalysisTest extends TestCase
 {
-    public function testCasesStart()
+    public function testSwitchAnalysis(): void
     {
-        $analysis = new SwitchAnalysis(10, 20, []);
-        static::assertSame(10, $analysis->getCasesStart());
+        $analysis = new SwitchAnalysis(10, 11, 15, [], null);
+
+        static::assertSame(10, $analysis->getIndex());
+        static::assertSame(11, $analysis->getOpenIndex());
+        static::assertSame(15, $analysis->getCloseIndex());
+        static::assertSame([], $analysis->getCases());
+        static::assertNull($analysis->getDefaultAnalysis());
     }
 
-    public function testCasesEnd()
+    public function testSwitchAnalysis2(): void
     {
-        $analysis = new SwitchAnalysis(10, 20, []);
-        static::assertSame(20, $analysis->getCasesEnd());
-    }
+        $caseAnalysis = new CaseAnalysis(20, 21);
+        $defaultAnalysis = new DefaultAnalysis(45, 48);
 
-    public function testCases()
-    {
-        $cases = [new CaseAnalysis(12), new CaseAnalysis(16)];
+        $analysis = new SwitchAnalysis(15, 17, 190, [$caseAnalysis], $defaultAnalysis);
 
-        $analysis = new SwitchAnalysis(10, 20, $cases);
-        static::assertSame($cases, $analysis->getCases());
+        static::assertSame(15, $analysis->getIndex());
+        static::assertSame(17, $analysis->getOpenIndex());
+        static::assertSame(190, $analysis->getCloseIndex());
+        static::assertSame([$caseAnalysis], $analysis->getCases());
+        static::assertSame($defaultAnalysis, $analysis->getDefaultAnalysis());
     }
 }

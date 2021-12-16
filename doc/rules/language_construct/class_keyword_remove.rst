@@ -2,6 +2,8 @@
 Rule ``class_keyword_remove``
 =============================
 
+.. warning:: This rule is deprecated and will be removed on next major version.
+
 Converts ``::class`` keywords to FQCN strings.
 
 Examples
@@ -14,7 +16,7 @@ Example #1
 
    --- Original
    +++ New
-   @@ -2,4 +2,4 @@
+    <?php
 
     use Foo\Bar\Baz;
 

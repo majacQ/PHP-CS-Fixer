@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -24,17 +26,14 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 final class LowercaseKeywordsFixerTest extends AbstractFixerTestCase
 {
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixCases
      */
-    public function testFix($expected, $input = null)
+    public function testFix(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFixCases()
+    public function provideFixCases(): array
     {
         return [
             ['<?php $x = (1 and 2);', '<?php $x = (1 AND 2);'],
@@ -44,24 +43,21 @@ final class LowercaseKeywordsFixerTest extends AbstractFixerTestCase
         ];
     }
 
-    public function testHaltCompiler()
+    public function testHaltCompiler(): void
     {
         $this->doTest('<?php __HALT_COMPILER();');
     }
 
     /**
-     * @param string      $expected
-     * @param null|string $input
-     *
      * @dataProvider provideFixPhp74Cases
      * @requires PHP 7.4
      */
-    public function testFixPhp74($expected, $input = null)
+    public function testFixPhp74(string $expected, ?string $input = null): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFixPhp74Cases()
+    public function provideFixPhp74Cases(): array
     {
         return [
             [
@@ -72,18 +68,15 @@ final class LowercaseKeywordsFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string $expected
-     * @param string $input
-     *
      * @dataProvider provideFix80Cases
      * @requires PHP 8.0
      */
-    public function testFix80($expected, $input)
+    public function testFix80(string $expected, string $input): void
     {
         $this->doTest($expected, $input);
     }
 
-    public function provideFix80Cases()
+    public function provideFix80Cases(): \Generator
     {
         yield [
             '<?php
@@ -115,6 +108,67 @@ class Point {
         Protected float $y = 0.0,
         privatE float $z = 0.0,
     ) {}
+}
+',
+        ];
+    }
+
+    /**
+     * @dataProvider provideFix81Cases
+     * @requires PHP 8.1
+     */
+    public function testFix81(string $expected, string $input): void
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function provideFix81Cases(): \Generator
+    {
+        yield [
+            '<?php
+final class Foo
+{
+    public readonly string $prop;
+}
+            ',
+            '<?php
+final class Foo
+{
+    public READONLY string $prop;
+}
+            ',
+        ];
+
+        yield [
+            '<?php
+class Point {
+    public function __construct(
+        public readonly float $x = 0.0,
+        readonly protected float $y = 0.0,
+        private readonly float $z = 0.0,
+    ) {}
+}
+',
+            '<?php
+class Point {
+    public function __construct(
+        PUBLIC rEADONLY float $x = 0.0,
+        READonly Protected float $y = 0.0,
+        privatE READONLY float $z = 0.0,
+    ) {}
+}
+',
+        ];
+
+        yield 'enum full caps' => [
+            '<?php
+enum Suit {
+    case Hearts;
+}
+',
+            '<?php
+ENUM Suit {
+    case Hearts;
 }
 ',
         ];

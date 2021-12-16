@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of PHP CS Fixer.
  *
@@ -15,7 +17,7 @@ namespace PhpCsFixer\Tests\Fixer\Basic;
 use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 
 /**
- * @author Graham Campbell <graham@alt-three.com>
+ * @author Graham Campbell <hello@gjcampbell.co.uk>
  * @author Kuba Werłos <werlos@gmail.com>
  *
  * @internal
@@ -25,15 +27,11 @@ use PhpCsFixer\Tests\Test\AbstractFixerTestCase;
 final class PsrAutoloadingFixerTest extends AbstractFixerTestCase
 {
     /**
-     * This is new test method, to replace old one one day.
-     *
-     * @param string      $expected
-     * @param null|string $input
-     * @param null|string $dir
+     * This is new test method, to replace old one some day.
      *
      * @dataProvider provideFixNewCases
      */
-    public function testFixNew($expected, $input = null, $dir = null)
+    public function testFixNew(string $expected, ?string $input = null, ?string $dir = null): void
     {
         if (null !== $dir) {
             $this->fixer->configure(['dir' => $dir]);
@@ -42,7 +40,7 @@ final class PsrAutoloadingFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input, $this->getTestFile(__FILE__));
     }
 
-    public static function provideFixNewCases()
+    public static function provideFixNewCases(): \Generator
     {
         foreach (['class', 'interface', 'trait'] as $element) {
             yield sprintf('%s with originally short name', $element) => [
@@ -160,15 +158,11 @@ final class PsrAutoloadingFixerTest extends AbstractFixerTestCase
     }
 
     /**
-     * @param string            $expected
-     * @param null|string       $input
-     * @param null|\SplFileInfo $file
-     * @param null|string       $dir
-     *
      * @dataProvider provideFixCases
      * @dataProvider provideIgnoredCases
+     * @dataProvider provideAnonymousClassCases
      */
-    public function testFix($expected, $input = null, $file = null, $dir = null)
+    public function testFix(string $expected, ?string $input = null, ?\SplFileInfo $file = null, ?string $dir = null): void
     {
         if (null === $file) {
             $file = $this->getTestFile(__FILE__);
@@ -180,10 +174,11 @@ final class PsrAutoloadingFixerTest extends AbstractFixerTestCase
         $this->doTest($expected, $input, $file);
     }
 
-    public function provideFixCases()
+    public function provideFixCases(): \Generator
     {
         $fileProphecy = $this->prophesize();
         $fileProphecy->willExtend(\SplFileInfo::class);
+        $fileProphecy->willBeConstructedWith(['']);
         $fileProphecy->getBasename('.php')->willReturn('Bar');
         $fileProphecy->getExtension()->willReturn('php');
         $fileProphecy->getRealPath()->willReturn(__DIR__.\DIRECTORY_SEPARATOR.'Psr'.\DIRECTORY_SEPARATOR.'Foo'.\DIRECTORY_SEPARATOR.'Bar.php');
@@ -369,7 +364,7 @@ class PsrAutoloadingFixer {}
         ];
     }
 
-    public function provideIgnoredCases()
+    public function provideIgnoredCases(): array
     {
         $cases = ['.php', 'Foo.class.php', '4Foo.php', '$#.php'];
 
@@ -395,7 +390,7 @@ class PsrAutoloadingFixer {}
             }
         }
 
-        return array_map(function ($case) {
+        return array_map(function ($case): array {
             return [
                 '<?php
 namespace Aaa;
@@ -406,19 +401,7 @@ class Bar {}',
         }, $cases);
     }
 
-    /**
-     * @param string      $expected
-     * @param null|string $input
-     *
-     * @dataProvider provideFix70Cases
-     * @requires     PHP 7.0
-     */
-    public function testFix70($expected, $input = null)
-    {
-        $this->doTest($expected, $input, $this->getTestFile(__FILE__));
-    }
-
-    public function provideFix70Cases()
+    public function provideAnonymousClassCases(): iterable
     {
         yield 'class with anonymous class' => [
             '<?php
@@ -459,6 +442,27 @@ namespace PhpCsFixer\Tests\Fixer\Basic;
 class ClassOne {};
 new class extends stdClass {};
 class ClassTwo {};
+',
+        ];
+    }
+
+    /**
+     * @requires PHP 8.0
+     * @dataProvider providePhp80Cases
+     */
+    public function testFix80(string $expected, ?string $input = null): void
+    {
+        $this->doTest($expected, $input);
+    }
+
+    public function providePhp80Cases(): \Generator
+    {
+        yield 'anonymous + annotation' => [
+            '<?php
+namespace PhpCsFixer\Tests\Fixer\Basic;
+new
+#[Foo]
+class extends stdClass {};
 ',
         ];
     }
